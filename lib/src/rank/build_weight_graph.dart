@@ -1,8 +1,9 @@
-"use strict";
-
-var Digraph = require("graphlib").Digraph;
-
-module.exports = buildWeightGraph;
+part of dagre.rank;
+//"use strict";
+//
+//var Digraph = require("graphlib").Digraph;
+//
+//module.exports = buildWeightGraph;
 
 /*
  * This function takes a directed acyclic multi-graph and produces a
@@ -23,10 +24,10 @@ module.exports = buildWeightGraph;
  * graph is reversed then `minLen` will be a negative value (or 0 in the case
  * of a sideways edge).
  */
-function buildWeightGraph(g) {
+buildWeightGraph(g) {
   var result = new Digraph();
-  g.eachNode(function(u, value) { result.addNode(u, value); });
-  g.eachEdge(function(e, u, v, value) {
+  g.eachNode((u, value) { result.addNode(u, value); });
+  g.eachEdge((e, u, v, value) {
     var id = incidenceId(u, v);
     if (!result.hasEdge(id)) {
       result.addEdge(id, u, v, { weight: 0, minLen: 0 });
@@ -43,6 +44,6 @@ function buildWeightGraph(g) {
  * This id can be used to group (in an undirected manner) multi-edges
  * incident on the same two nodes.
  */
-function incidenceId(u, v) {
+incidenceId(u, v) {
   return u < v ?  u.length + ":" + u + "-" + v : v.length + ":" + v + "-" + u;
 }

@@ -1,9 +1,10 @@
-"use strict";
+part of dagre.rank;
+//"use strict";
 
-exports.apply = function(g) {
-  function dfs(sg) {
+apply(g) {
+  dfs(sg) {
     var rankSets = {};
-    g.children(sg).forEach(function(u) {
+    g.children(sg).forEach((u) {
       if (g.children(u).length) {
         dfs(u);
         return;
@@ -11,23 +12,23 @@ exports.apply = function(g) {
 
       var value = g.node(u),
           prefRank = value.prefRank;
-      if (prefRank !== undefined) {
+      if (prefRank != undefined) {
         if (!checkSupportedPrefRank(prefRank)) { return; }
 
-        if (!(prefRank in rankSets)) {
+        if (!(rankSets.containsKey(prefRank))) {
           rankSets.prefRank = [u];
         } else {
           rankSets.prefRank.push(u);
         }
 
         var newU = rankSets[prefRank];
-        if (newU === undefined) {
+        if (newU == undefined) {
           newU = rankSets[prefRank] = g.addNode(null, { originalNodes: [] });
           g.parent(newU, sg);
         }
 
-        redirectInEdges(g, u, newU, prefRank === "min");
-        redirectOutEdges(g, u, newU, prefRank === "max");
+        redirectInEdges(g, u, newU, prefRank == "min");
+        redirectOutEdges(g, u, newU, prefRank == "max");
 
         // Save original node and remove it from reduced graph
         g.node(newU).originalNodes.push({ u: u, value: value, parent: sg });
@@ -40,18 +41,18 @@ exports.apply = function(g) {
   }
 
   dfs(null);
-};
+}
 
-function checkSupportedPrefRank(prefRank) {
-  if (prefRank !== "min" && prefRank !== "max" && prefRank.indexOf("same_") !== 0) {
+checkSupportedPrefRank(prefRank) {
+  if (prefRank != "min" && prefRank != "max" && prefRank.indexOf("same_") != 0) {
     console.error("Unsupported rank type: " + prefRank);
     return false;
   }
   return true;
 }
 
-function redirectInEdges(g, u, newU, reverse) {
-  g.inEdges(u).forEach(function(e) {
+redirectInEdges(g, u, newU, reverse) {
+  g.inEdges(u).forEach((e) {
     var origValue = g.edge(e),
         value;
     if (origValue.originalEdge) {
@@ -78,8 +79,8 @@ function redirectInEdges(g, u, newU, reverse) {
   });
 }
 
-function redirectOutEdges(g, u, newU, reverse) {
-  g.outEdges(u).forEach(function(e) {
+redirectOutEdges(g, u, newU, reverse) {
+  g.outEdges(u).forEach((e) {
     var origValue = g.edge(e),
         value;
     if (origValue.originalEdge) {
@@ -106,24 +107,24 @@ function redirectOutEdges(g, u, newU, reverse) {
   });
 }
 
-function addLightEdgesFromMinNode(g, sg, minNode) {
-  if (minNode !== undefined) {
-    g.children(sg).forEach(function(u) {
+addLightEdgesFromMinNode(g, sg, minNode) {
+  if (minNode != undefined) {
+    g.children(sg).forEach((u) {
       // The dummy check ensures we don"t add an edge if the node is involved
       // in a self loop or sideways edge.
-      if (u !== minNode && !g.outEdges(minNode, u).length && !g.node(u).dummy) {
+      if (u != minNode && !g.outEdges(minNode, u).length && !g.node(u).dummy) {
         g.addEdge(null, minNode, u, { minLen: 0 });
       }
     });
   }
 }
 
-function addLightEdgesToMaxNode(g, sg, maxNode) {
-  if (maxNode !== undefined) {
-    g.children(sg).forEach(function(u) {
+addLightEdgesToMaxNode(g, sg, maxNode) {
+  if (maxNode != undefined) {
+    g.children(sg).forEach((u) {
       // The dummy check ensures we don"t add an edge if the node is involved
       // in a self loop or sideways edge.
-      if (u !== maxNode && !g.outEdges(u, maxNode).length && !g.node(u).dummy) {
+      if (u != maxNode && !g.outEdges(u, maxNode).length && !g.node(u).dummy) {
         g.addEdge(null, u, maxNode, { minLen: 0 });
       }
     });
@@ -139,10 +140,10 @@ function addLightEdgesToMaxNode(g, sg, maxNode) {
  * Note that the process of removing collapsed nodes also removes dummy edges
  * automatically.
  */
-exports.relax = function(g) {
+relax(g) {
   // Save original edges
   var originalEdges = [];
-  g.eachEdge(function(e, u, v, value) {
+  g.eachEdge((e, u, v, value) {
     var originalEdge = value.originalEdge;
     if (originalEdge) {
       originalEdges.push(originalEdge);
@@ -150,10 +151,10 @@ exports.relax = function(g) {
   });
 
   // Expand collapsed nodes
-  g.eachNode(function(u, value) {
+  g.eachNode((u, value) {
     var originalNodes = value.originalNodes;
     if (originalNodes) {
-      originalNodes.forEach(function(originalNode) {
+      originalNodes.forEach((originalNode) {
         originalNode.value.rank = value.rank;
         g.addNode(originalNode.u, originalNode.value);
         g.parent(originalNode.u, originalNode.parent);
@@ -163,7 +164,7 @@ exports.relax = function(g) {
   });
 
   // Restore original edges
-  originalEdges.forEach(function(edge) {
+  originalEdges.forEach((edge) {
     g.addEdge(edge.e, edge.u, edge.v, edge.value);
   });
-};
+}

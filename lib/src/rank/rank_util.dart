@@ -1,8 +1,9 @@
-"use strict";
-
-module.exports = {
-  slack: slack
-};
+library dagre.rank.util;
+//"use strict";
+//
+//module.exports = {
+//  slack: slack
+//};
 
 /*
  * A helper to calculate the slack between two nodes (`u` and `v`) given a
@@ -13,6 +14,6 @@ module.exports = {
   This function requires that `u` and `v` are in `graph` and they both have a
   `rank` attribute.
  */
-function slack(graph, u, v, minLen) {
+slack(graph, u, v, minLen) {
   return Math.abs(graph.node(u).rank - graph.node(v).rank) - minLen;
 }

@@ -1,27 +1,28 @@
-"use strict";
+part of dagre.order;
+//"use strict";
+//
+//var util = require("../util"),
+//    Digraph = require("graphlib").Digraph,
+//    topsort = require("graphlib").alg.topsort,
+//    nodesFromList = require("graphlib").filter.nodesFromList;
+//
+//module.exports = sortLayer;
 
-var util = require("../util"),
-    Digraph = require("graphlib").Digraph,
-    topsort = require("graphlib").alg.topsort,
-    nodesFromList = require("graphlib").filter.nodesFromList;
-
-module.exports = sortLayer;
-
-function sortLayer(g, cg, weights) {
+sortLayer(g, cg, weights) {
   weights = adjustWeights(g, weights);
   var result = sortLayerSubgraph(g, null, cg, weights);
 
-  result.list.forEach(function(u, i) {
+  result.list.forEach((u, i) {
     g.node(u).order = i;
   });
   return result.constraintGraph;
 }
 
-function sortLayerSubgraph(g, sg, cg, weights) {
+sortLayerSubgraph(g, sg, cg, weights) {
   cg = cg ? cg.filterNodes(nodesFromList(g.children(sg))) : new Digraph();
 
   var nodeData = {};
-  g.children(sg).forEach(function(u) {
+  g.children(sg).forEach((u) {
     if (g.children(u).length) {
       nodeData[u] = sortLayerSubgraph(g, u, cg, weights);
       nodeData[u].firstSG = u;
@@ -41,21 +42,21 @@ function sortLayerSubgraph(g, sg, cg, weights) {
   resolveViolatedConstraints(g, cg, nodeData);
 
   var keys = Object.keys(nodeData);
-  keys.sort(function(x, y) {
+  keys.sort((x, y) {
     return nodeData[x].barycenter - nodeData[y].barycenter ||
            nodeData[x].order - nodeData[y].order;
   });
 
-  var result =  keys.map(function(u) { return nodeData[u]; })
-                    .reduce(function(lhs, rhs) { return mergeNodeData(g, lhs, rhs); });
+  var result = keys.map((u) { return nodeData[u]; })
+                    .reduce((lhs, rhs) { return mergeNodeData(g, lhs, rhs); });
   return result;
 }
 
-function mergeNodeData(g, lhs, rhs) {
+mergeNodeData(g, lhs, rhs) {
   var cg = mergeDigraphs(lhs.constraintGraph, rhs.constraintGraph);
 
-  if (lhs.lastSG !== undefined && rhs.firstSG !== undefined) {
-    if (cg === undefined) {
+  if (lhs.lastSG != undefined && rhs.firstSG != undefined) {
+    if (cg == undefined) {
       cg = new Digraph();
     }
     if (!cg.hasNode(lhs.lastSG)) { cg.addNode(lhs.lastSG); }
@@ -71,33 +72,33 @@ function mergeNodeData(g, lhs, rhs) {
            (lhs.orderCount + rhs.orderCount),
     orderCount: lhs.orderCount + rhs.orderCount,
     list: lhs.list.concat(rhs.list),
-    firstSG: lhs.firstSG !== undefined ? lhs.firstSG : rhs.firstSG,
-    lastSG: rhs.lastSG !== undefined ? rhs.lastSG : lhs.lastSG,
+    firstSG: lhs.firstSG != undefined ? lhs.firstSG : rhs.firstSG,
+    lastSG: rhs.lastSG != undefined ? rhs.lastSG : lhs.lastSG,
     constraintGraph: cg
   };
 }
 
-function mergeDigraphs(lhs, rhs) {
-  if (lhs === undefined) return rhs;
-  if (rhs === undefined) return lhs;
+mergeDigraphs(lhs, rhs) {
+  if (lhs == undefined) return rhs;
+  if (rhs == undefined) return lhs;
 
   lhs = lhs.copy();
-  rhs.nodes().forEach(function(u) { lhs.addNode(u); });
-  rhs.edges().forEach(function(e, u, v) { lhs.addEdge(null, u, v); });
+  rhs.nodes().forEach((u) { lhs.addNode(u); });
+  rhs.edges().forEach((e, u, v) { lhs.addEdge(null, u, v); });
   return lhs;
 }
 
-function resolveViolatedConstraints(g, cg, nodeData) {
+resolveViolatedConstraints(g, cg, nodeData) {
   // Removes nodes `u` and `v` from `cg` and makes any edges incident on them
   // incident on `w` instead.
-  function collapseNodes(u, v, w) {
+  collapseNodes(u, v, w) {
     // TODO original paper removes self loops, but it is not obvious when this would happen
-    cg.inEdges(u).forEach(function(e) {
+    cg.inEdges(u).forEach((e) {
       cg.delEdge(e);
       cg.addEdge(null, cg.source(e), w);
     });
 
-    cg.outEdges(v).forEach(function(e) {
+    cg.outEdges(v).forEach((e) {
       cg.delEdge(e);
       cg.addEdge(null, w, cg.target(e));
     });
@@ -107,7 +108,7 @@ function resolveViolatedConstraints(g, cg, nodeData) {
   }
 
   var violated;
-  while ((violated = findViolatedConstraint(cg, nodeData)) !== undefined) {
+  while ((violated = findViolatedConstraint(cg, nodeData)) != undefined) {
     var source = cg.source(violated),
         target = cg.target(violated);
 
@@ -118,15 +119,15 @@ function resolveViolatedConstraints(g, cg, nodeData) {
 
     // Collapse barycenter and list
     nodeData[v] = mergeNodeData(g, nodeData[source], nodeData[target]);
-    delete nodeData[source];
-    delete nodeData[target];
+    nodeData.remove(source);
+    nodeData.remove(target);
 
     collapseNodes(source, target, v);
-    if (cg.incidentEdges(v).length === 0) { cg.delNode(v); }
+    if (cg.incidentEdges(v).length == 0) { cg.delNode(v); }
   }
 }
 
-function findViolatedConstraint(cg, nodeData) {
+findViolatedConstraint(cg, nodeData) {
   var us = topsort(cg);
   for (var i = 0; i < us.length; ++i) {
     var u = us[i];
@@ -143,11 +144,11 @@ function findViolatedConstraint(cg, nodeData) {
 // Adjust weights so that they fall in the range of 0..|N|-1. If a node has no
 // weight assigned then set its adjusted weight to its current position. This
 // allows us to better retain the origiinal position of nodes without neighbors.
-function adjustWeights(g, weights) {
+adjustWeights(g, weights) {
   var minW = Number.MAX_VALUE,
       maxW = 0,
       adjusted = {};
-  g.eachNode(function(u) {
+  g.eachNode((u) {
     if (g.children(u).length) return;
 
     var ws = weights[u];
@@ -158,14 +159,14 @@ function adjustWeights(g, weights) {
   });
 
   var rangeW = (maxW - minW);
-  g.eachNode(function(u) {
+  g.eachNode((u) {
     if (g.children(u).length) return;
 
     var ws = weights[u];
     if (!ws.length) {
       adjusted[u] = [g.node(u).order];
     } else {
-      adjusted[u] = ws.map(function(w) {
+      adjusted[u] = ws.map((w) {
         if (rangeW) {
           return (w - minW) * (g.order() - 1) / rangeW;
         } else {

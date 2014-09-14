@@ -1,10 +1,11 @@
-/* jshint -W079 */
-var Set = require("cp-data").Set,
-/* jshint +W079 */
-    Digraph = require("graphlib").Digraph,
-    util = require("../util");
+part of dagre.rank;
+///* jshint -W079 */
+//var Set = require("cp-data").Set,
+///* jshint +W079 */
+//    Digraph = require("graphlib").Digraph,
+//    util = require("../util");
 
-module.exports = feasibleTree;
+//module.exports = feasibleTree;
 
 /*
  * Given an acyclic graph with each node assigned a `rank` attribute, this
@@ -30,20 +31,20 @@ module.exports = feasibleTree;
  * include `reversed`. `reversed` indicates that the edge is a
  * back edge in the input graph.
  */
-function feasibleTree(g) {
+feasibleTree(g) {
   var remaining = new Set(g.nodes()),
       tree = new Digraph();
 
-  if (remaining.size() === 1) {
+  if (remaining.size() == 1) {
     var root = g.nodes()[0];
     tree.addNode(root, {});
     tree.graph({ root: root });
     return tree;
   }
 
-  function addTightEdges(v) {
+  addTightEdges(v) {
     var continueToScan = true;
-    g.predecessors(v).forEach(function(u) {
+    g.predecessors(v).forEach((u) {
       if (remaining.has(u) && !slack(g, u, v)) {
         if (remaining.has(v)) {
           tree.addNode(v, {});
@@ -59,7 +60,7 @@ function feasibleTree(g) {
       }
     });
 
-    g.successors(v).forEach(function(w)  {
+    g.successors(v).forEach((w)  {
       if (remaining.has(w) && !slack(g, v, w)) {
         if (remaining.has(v)) {
           tree.addNode(v, {});
@@ -77,10 +78,10 @@ function feasibleTree(g) {
     return continueToScan;
   }
 
-  function createTightEdge() {
+  createTightEdge() {
     var minSlack = Number.MAX_VALUE;
-    remaining.keys().forEach(function(v) {
-      g.predecessors(v).forEach(function(u) {
+    remaining.keys().forEach((v) {
+      g.predecessors(v).forEach((u) {
         if (!remaining.has(u)) {
           var edgeSlack = slack(g, u, v);
           if (Math.abs(edgeSlack) < Math.abs(minSlack)) {
@@ -89,7 +90,7 @@ function feasibleTree(g) {
         }
       });
 
-      g.successors(v).forEach(function(w) {
+      g.successors(v).forEach((w) {
         if (!remaining.has(w)) {
           var edgeSlack = slack(g, v, w);
           if (Math.abs(edgeSlack) < Math.abs(minSlack)) {
@@ -99,7 +100,7 @@ function feasibleTree(g) {
       });
     });
 
-    tree.eachNode(function(u) { g.node(u).rank -= minSlack; });
+    tree.eachNode((u) { g.node(u).rank -= minSlack; });
   }
 
   while (remaining.size()) {
@@ -115,9 +116,9 @@ function feasibleTree(g) {
   return tree;
 }
 
-function slack(g, u, v) {
+slack(g, u, v) {
   var rankDiff = g.node(v).rank - g.node(u).rank;
   var maxMinLen = util.max(g.outEdges(u, v)
-                            .map(function(e) { return g.edge(e).minLen; }));
+                            .map((e) { return g.edge(e).minLen; }));
   return rankDiff - maxMinLen;
 }

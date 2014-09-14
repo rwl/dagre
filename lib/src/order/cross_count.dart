@@ -1,13 +1,13 @@
-"use strict";
-
-var util = require("../util");
-
-module.exports = crossCount;
+//"use strict";
+//
+//var util = require("../util");
+//
+//module.exports = crossCount;
 
 /*
  * Returns the cross count for the given graph.
  */
-function crossCount(g) {
+crossCount(g) {
   var cc = 0;
   var ordering = util.ordering(g);
   for (var i = 1; i < ordering.length; ++i) {
@@ -22,12 +22,12 @@ function crossCount(g) {
  *
  *    W. Barth et al., Bilayer Cross Counting, JGAA, 8(2) 179–194 (2004)
  */
-function twoLayerCrossCount(g, layer1, layer2) {
+twoLayerCrossCount(g, layer1, layer2) {
   var indices = [];
-  layer1.forEach(function(u) {
+  layer1.forEach((u) {
     var nodeIndices = [];
-    g.outEdges(u).forEach(function(e) { nodeIndices.push(g.node(g.target(e)).order); });
-    nodeIndices.sort(function(x, y) { return x - y; });
+    g.outEdges(u).forEach((e) { nodeIndices.push(g.node(g.target(e)).order); });
+    nodeIndices.sort((x, y) { return x - y; });
     indices = indices.concat(nodeIndices);
   });
 
@@ -41,7 +41,7 @@ function twoLayerCrossCount(g, layer1, layer2) {
   for (var i = 0; i < treeSize; ++i) { tree[i] = 0; }
 
   var cc = 0;
-  indices.forEach(function(i) {
+  indices.forEach((i) {
     var treeIndex = i + firstIndex;
     ++tree[treeIndex];
     while (treeIndex > 0) {

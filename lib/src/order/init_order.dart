@@ -1,9 +1,10 @@
-"use strict";
-
-var crossCount = require("./crossCount"),
-    util = require("../util");
-
-module.exports = initOrder;
+part of dagre.order;
+//"use strict";
+//
+//var crossCount = require("./crossCount"),
+//    util = require("../util");
+//
+//module.exports = initOrder;
 
 /*
  * Given a graph with a set of layered nodes (i.e. nodes that have a `rank`
@@ -11,10 +12,10 @@ module.exports = initOrder;
  * arranges each node of each rank. If no constraint graph is provided the
  * order of the nodes in each rank is entirely arbitrary.
  */
-function initOrder(g, random) {
+initOrder(g, random) {
   var layers = [];
 
-  g.eachNode(function(u, value) {
+  g.eachNode((u, value) {
     var layer = layers[value.rank];
     if (g.children && g.children(u).length > 0) return;
     if (!layer) {
@@ -23,11 +24,11 @@ function initOrder(g, random) {
     layer.push(u);
   });
 
-  layers.forEach(function(layer) {
+  layers.forEach((layer) {
     if (random) {
       util.shuffle(layer);
     }
-    layer.forEach(function(u, i) {
+    layer.forEach((u, i) {
       g.node(u).order = i;
     });
   });

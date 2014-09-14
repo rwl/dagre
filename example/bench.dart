@@ -1,37 +1,39 @@
 // This program tests the quality of the dagre odering algorithm.
 
-var path = require('path'),
-    fs = require('fs'),
-    dagre = require('../index'),
-    util = require('../lib/util'),
-    dot = require('graphlib-dot');
+//var path = require('path'),
+//    fs = require('fs'),
+//    dagre = require('../index'),
+//    util = require('../lib/util'),
+//    dot = require('graphlib-dot');
 
-var benchmarkFiles = process.argv.slice(2);
-if (benchmarkFiles.length === 0) {
-  process.stderr.write('Usage: ' + __filename + ' [DOT file]+\n');
-  process.exit(1);
+//var benchmarkFiles = process.argv.slice(2);
+//if (benchmarkFiles.length == 0) {
+//  process.stderr.write('Usage: ' + __filename + ' [DOT file]+\n');
+//  process.exit(1);
+//}
+
+var IGNORE_PATTERN = "Input graph is not acyclic";
+
+main() {
+  var samples = [];
+  var times = [];
+  var skipped = 0;
+  var ignored = 0;
+  var failed = 0;
+
+  //process.on('SIGINT', function() {
+  //  console.log('\n\n!! Aborting...');
+  //  process.exit(1);
+  //});
+  //process.on('exit', () { finish(); });
+
+  // Start the loop
+  handleNext();
 }
 
-var IGNORE_PATTERN = /Input graph is not acyclic/;
-
-var samples = [];
-var times = [];
-var skipped = 0;
-var ignored = 0;
-var failed = 0;
-
-process.on('SIGINT', function() {
-  console.log('\n\n!! Aborting...');
-  process.exit(1);
-});
-process.on('exit', function() { finish(); });
-
-// Start the loop
-handleNext();
-
-function handleNext() {
+handleNext() {
   var entry = benchmarkFiles.pop();
-  if (entry === undefined) {
+  if (entry == undefined) {
     return;
   }
 
@@ -42,19 +44,19 @@ function handleNext() {
   }
 }
 
-function pushDirectory(dir) {
-  fs.readdir(dir, function(err, files) {
+pushDirectory(dir) {
+  fs.readdir(dir, (err, files) {
     if (err) throw err;
-    files.forEach(function(file) {
+    files.forEach((file) {
       benchmarkFiles.push(path.resolve(dir, file));
     });
     handleNext();
   });
 }
 
-function processFile(file) {
+processFile(file) {
   process.stdout.write(leftPad(20, file) + ': ');
-  fs.readFile(file, function(err, data) {
+  fs.readFile(file, (err, data) {
     if (err) throw err;
     var f = data.toString('utf-8');
     try {
@@ -92,7 +94,7 @@ function processFile(file) {
   });
 }
 
-function finish() {
+finish() {
   console.log();
   console.log('Results');
   console.log('-------');
@@ -104,7 +106,7 @@ function finish() {
   console.log('Execution time: ' + util.sum(times) + 'ms (avg: ' + Math.round(util.sum(times) / times.length) + 'ms)');
 }
 
-function leftPad(len, str) {
+leftPad(len, str) {
   var result = [];
   for (i = 0; i < len; ++i) {
     result.push(' ');

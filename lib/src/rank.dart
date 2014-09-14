@@ -1,16 +1,17 @@
-"use strict";
-
-var util = require("./util"),
-    acyclic = require("./rank/acyclic"),
-    initRank = require("./rank/initRank"),
-    feasibleTree = require("./rank/feasibleTree"),
-    constraints = require("./rank/constraints"),
-    simplex = require("./rank/simplex"),
-    components = require("graphlib").alg.components,
-    filter = require("graphlib").filter;
-
-exports.run = run;
-exports.restoreEdges = restoreEdges;
+part of dagre;
+//"use strict";
+//
+//var util = require("./util"),
+//    acyclic = require("./rank/acyclic"),
+//    initRank = require("./rank/initRank"),
+//    feasibleTree = require("./rank/feasibleTree"),
+//    constraints = require("./rank/constraints"),
+//    simplex = require("./rank/simplex"),
+//    components = require("graphlib").alg.components,
+//    filter = require("graphlib").filter;
+//
+//exports.run = run;
+//exports.restoreEdges = restoreEdges;
 
 /*
  * Heuristic function that assigns a rank to each node of the input graph with
@@ -21,7 +22,7 @@ exports.restoreEdges = restoreEdges;
  *
  *  * Each edge in the input graph must have an assigned "minLen" attribute
  */
-function run(g, useSimplex) {
+run(g, useSimplex) {
   expandSelfLoops(g);
 
   // If there are rank constraints on nodes, then build a new graph that
@@ -41,7 +42,7 @@ function run(g, useSimplex) {
   initRank(flatGraph);
 
   // For each component improve the assigned ranks.
-  components(flatGraph).forEach(function(cmpt) {
+  components(flatGraph).forEach((cmpt) {
     var subgraph = flatGraph.filterNodes(filter.nodesFromList(cmpt));
     rankComponent(subgraph, useSimplex);
   });
@@ -57,7 +58,7 @@ function run(g, useSimplex) {
   util.time("reorientEdges", reorientEdges)(g);
 }
 
-function restoreEdges(g) {
+restoreEdges(g) {
   acyclic.undo(g);
 }
 
@@ -75,9 +76,9 @@ function restoreEdges(g) {
  * TODO: consolidate knowledge of dummy node construction.
  * TODO: support minLen = 2
  */
-function expandSelfLoops(g) {
-  g.eachEdge(function(e, u, v, a) {
-    if (u === v) {
+expandSelfLoops(g) {
+  g.eachEdge((e, u, v, a) {
+    if (u == v) {
       var x = addDummyNode(g, e, u, v, a, 0, false),
           y = addDummyNode(g, e, u, v, a, 1, true),
           z = addDummyNode(g, e, u, v, a, 2, false);
@@ -90,9 +91,9 @@ function expandSelfLoops(g) {
   });
 }
 
-function expandSidewaysEdges(g) {
-  g.eachEdge(function(e, u, v, a) {
-    if (u === v) {
+expandSidewaysEdges(g) {
+  g.eachEdge((e, u, v, a) {
+    if (u == v) {
       var origEdge = a.originalEdge,
           dummy = addDummyNode(g, origEdge.e, origEdge.u, origEdge.v, origEdge.value, 0, true);
       g.addEdge(null, u, dummy, {minLen: 1});
@@ -102,7 +103,7 @@ function expandSidewaysEdges(g) {
   });
 }
 
-function addDummyNode(g, e, u, v, a, index, isLabel) {
+addDummyNode(g, e, u, v, a, index, isLabel) {
   return g.addNode(null, {
     width: isLabel ? a.width : 0,
     height: isLabel ? a.height : 0,
@@ -112,8 +113,8 @@ function addDummyNode(g, e, u, v, a, index, isLabel) {
   });
 }
 
-function reorientEdges(g) {
-  g.eachEdge(function(e, u, v, value) {
+reorientEdges(g) {
+  g.eachEdge((e, u, v, value) {
     if (g.node(u).rank > g.node(v).rank) {
       g.delEdge(e);
       value.reversed = true;
@@ -122,7 +123,7 @@ function reorientEdges(g) {
   });
 }
 
-function rankComponent(subgraph, useSimplex) {
+rankComponent(subgraph, useSimplex) {
   var spanningTree = feasibleTree(subgraph);
 
   if (useSimplex) {
@@ -132,7 +133,7 @@ function rankComponent(subgraph, useSimplex) {
   normalize(subgraph);
 }
 
-function normalize(g) {
-  var m = util.min(g.nodes().map(function(u) { return g.node(u).rank; }));
-  g.eachNode(function(u, node) { node.rank -= m; });
+normalize(g) {
+  var m = util.min(g.nodes().map((u) { return g.node(u).rank; }));
+  g.eachNode((u, node) { node.rank -= m; });
 }

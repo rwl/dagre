@@ -1,18 +1,19 @@
-"use strict";
+part of dagre.rank;
+//"use strict";
+//
+//var util = require("../util"),
+//    rankUtil = require("./rankUtil");
+//
+//module.exports = simplex;
 
-var util = require("../util"),
-    rankUtil = require("./rankUtil");
-
-module.exports = simplex;
-
-function simplex(graph, spanningTree) {
+simplex(graph, spanningTree) {
   // The network simplex algorithm repeatedly replaces edges of
   // the spanning tree with negative cut values until no such
   // edge exists.
   initCutValues(graph, spanningTree);
   while (true) {
     var e = leaveEdge(spanningTree);
-    if (e === null) break;
+    if (e == null) break;
     var f = enterEdge(graph, spanningTree, e);
     exchange(graph, spanningTree, e, f);
   }
@@ -25,21 +26,21 @@ function simplex(graph, spanningTree) {
  * Negative cut values typically indicate edges that would yield a
  * smaller edge length sum if they were lengthened.
  */
-function initCutValues(graph, spanningTree) {
+initCutValues(graph, spanningTree) {
   computeLowLim(spanningTree);
 
-  spanningTree.eachEdge(function(id, u, v, treeValue) {
+  spanningTree.eachEdge((id, u, v, treeValue) {
     treeValue.cutValue = 0;
   });
 
   // Propagate cut values up the tree.
-  function dfs(n) {
+  dfs(n) {
     var children = spanningTree.successors(n);
     for (var c in children) {
       var child = children[c];
       dfs(child);
     }
-    if (n !== spanningTree.graph().root) {
+    if (n != spanningTree.graph().root) {
       setCutValue(graph, spanningTree, n);
     }
   }
@@ -53,10 +54,10 @@ function initCutValues(graph, spanningTree) {
  * way to test whether u is an ancestor of v since
  * low(u) <= lim(v) <= lim(u) if and only if u is an ancestor.
  */
-function computeLowLim(tree) {
+computeLowLim(tree) {
   var postOrderNum = 0;
 
-  function dfs(n) {
+  dfs(n) {
     var children = tree.successors(n);
     var low = postOrderNum;
     for (var c in children) {
@@ -80,7 +81,7 @@ function computeLowLim(tree) {
  *          /      \
  *         u        v
  */
-function setCutValue(graph, tree, child) {
+setCutValue(graph, tree, child) {
   var parentEdge = tree.inEdges(child)[0];
 
   // List of child"s children in the spanning tree.
@@ -152,7 +153,7 @@ function setCutValue(graph, tree, child) {
  * Return whether n is a node in the subtree with the given
  * root.
  */
-function inSubtree(tree, n, root) {
+inSubtree(tree, n, root) {
   return (tree.node(root).low <= tree.node(n).lim &&
           tree.node(n).lim <= tree.node(root).lim);
 }
@@ -161,7 +162,7 @@ function inSubtree(tree, n, root) {
  * Return an edge from the tree with a negative cut value, or null if there
  * is none.
  */
-function leaveEdge(tree) {
+leaveEdge(tree) {
   var edges = tree.edges();
   for (var n in edges) {
     var e = edges[n];
@@ -180,7 +181,7 @@ function leaveEdge(tree) {
  * minimum slack going from outside of that node"s subtree to inside
  * of that node"s subtree.
  */
-function enterEdge(graph, tree, e) {
+enterEdge(graph, tree, e) {
   var source = tree.source(e);
   var target = tree.target(e);
   var lower = tree.node(target).lim < tree.node(source).lim ? target : source;
@@ -191,8 +192,8 @@ function enterEdge(graph, tree, e) {
   var minSlack = Number.POSITIVE_INFINITY;
   var minSlackEdge;
   if (aligned) {
-    graph.eachEdge(function(id, u, v, value) {
-      if (id !== e && inSubtree(tree, u, lower) && !inSubtree(tree, v, lower)) {
+    graph.eachEdge((id, u, v, value) {
+      if (id != e && inSubtree(tree, u, lower) && !inSubtree(tree, v, lower)) {
         var slack = rankUtil.slack(graph, u, v, value.minLen);
         if (slack < minSlack) {
           minSlack = slack;
@@ -201,8 +202,8 @@ function enterEdge(graph, tree, e) {
       }
     });
   } else {
-    graph.eachEdge(function(id, u, v, value) {
-      if (id !== e && !inSubtree(tree, u, lower) && inSubtree(tree, v, lower)) {
+    graph.eachEdge((id, u, v, value) {
+      if (id != e && !inSubtree(tree, u, lower) && inSubtree(tree, v, lower)) {
         var slack = rankUtil.slack(graph, u, v, value.minLen);
         if (slack < minSlack) {
           minSlack = slack;
@@ -212,10 +213,10 @@ function enterEdge(graph, tree, e) {
     });
   }
 
-  if (minSlackEdge === undefined) {
+  if (minSlackEdge == undefined) {
     var outside = [];
     var inside = [];
-    graph.eachNode(function(id) {
+    graph.eachNode((id) {
       if (!inSubtree(tree, id, lower)) {
         outside.push(id);
       } else {
@@ -232,13 +233,13 @@ function enterEdge(graph, tree, e) {
  * Replace edge e with edge f in the tree, recalculating the tree root,
  * the nodes" low and lim properties and the edges" cut values.
  */
-function exchange(graph, tree, e, f) {
+exchange(graph, tree, e, f) {
   tree.delEdge(e);
   var source = graph.source(f);
   var target = graph.target(f);
 
   // Redirect edges so that target is the root of its subtree.
-  function redirect(v) {
+  redirect(v) {
     var edges = tree.inEdges(v);
     for (var i in edges) {
       var e = edges[i];
@@ -275,10 +276,10 @@ function exchange(graph, tree, e, f) {
  * nodes are set to the sum of minimum length constraints along
  * the path from the root.
  */
-function adjustRanks(graph, tree) {
-  function dfs(p) {
+adjustRanks(graph, tree) {
+  dfs(p) {
     var children = tree.successors(p);
-    children.forEach(function(c) {
+    children.forEach((c) {
       var minLen = minimumLength(graph, p, c);
       graph.node(c).rank = graph.node(p).rank + minLen;
       dfs(c);
@@ -293,17 +294,17 @@ function adjustRanks(graph, tree) {
  * minimum length of those edges, as a positive number if v succeeds
  * u and as a negative number if v precedes u.
  */
-function minimumLength(graph, u, v) {
+minimumLength(graph, u, v) {
   var outEdges = graph.outEdges(u, v);
   if (outEdges.length > 0) {
-    return util.max(outEdges.map(function(e) {
+    return util.max(outEdges.map((e) {
       return graph.edge(e).minLen;
     }));
   }
 
   var inEdges = graph.inEdges(u, v);
   if (inEdges.length > 0) {
-    return -util.max(inEdges.map(function(e) {
+    return -util.max(inEdges.map((e) {
       return graph.edge(e).minLen;
     }));
   }

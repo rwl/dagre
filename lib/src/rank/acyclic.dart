@@ -1,9 +1,10 @@
-"use strict";
-
-var util = require("../util");
-
-module.exports = acyclic;
-module.exports.undo = undo;
+part of dagre.rank;
+//"use strict";
+//
+//var util = require("../util");
+//
+//module.exports = acyclic;
+//module.exports.undo = undo;
 
 /*
  * This function takes a directed graph that may have cycles and reverses edges
@@ -12,21 +13,21 @@ module.exports.undo = undo;
  *
  * There should be no self loops in the graph.
  */
-function acyclic(g) {
+acyclic(g) {
   var onStack = {},
       visited = {},
       reverseCount = 0;
 
-  function dfs(u) {
-    if (u in visited) return;
+  dfs(u) {
+    if (visited.containsKey(u)) return;
     visited[u] = onStack[u] = true;
-    g.outEdges(u).forEach(function(e) {
+    g.outEdges(u).forEach((e) {
       var t = g.target(e),
           value;
 
-      if (u === t) {
+      if (u == t) {
         console.error("Warning: found self loop '" + e + "' for node '" + u + "'");
-      } else if (t in onStack) {
+      } else if (onStack.containsKey(t)) {
         value = g.edge(e);
         g.delEdge(e);
         value.reversed = true;
@@ -37,10 +38,10 @@ function acyclic(g) {
       }
     });
 
-    delete onStack[u];
+    onStack.remove(u);
   }
 
-  g.eachNode(function(u) { dfs(u); });
+  g.eachNode((u) { dfs(u); });
 
   util.log(2, "Acyclic Phase: reversed " + reverseCount + " edge(s)");
 
@@ -52,10 +53,10 @@ function acyclic(g) {
  * undoes that operation. More specifically, any edge with the `reversed`
  * attribute is again reversed to restore the original direction of the edge.
  */
-function undo(g) {
-  g.eachEdge(function(e, s, t, a) {
+undo(g) {
+  g.eachEdge((e, s, t, a) {
     if (a.reversed) {
-      delete a.reversed;
+      a.remove(reversed);
       g.delEdge(e);
       g.addEdge(e, t, s, a);
     }

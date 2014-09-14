@@ -1,3 +1,4 @@
+part of dagre;
 //"use strict";
 //
 //var util = require("./util"),
@@ -6,46 +7,56 @@
 //    CGraph = require("graphlib").CGraph,
 //    CDigraph = require("graphlib").CDigraph;
 
-module.exports = function() {
+//module.exports = function() {
+class Layout {
   // External configuration
   var config = {
     // How much debug information to include?
-    debugLevel: 0,
+    'debugLevel': 0,
     // Max number of sweeps to perform in order phase
-    orderMaxSweeps: order.DEFAULT_MAX_SWEEPS,
+    'orderMaxSweeps': order.DEFAULT_MAX_SWEEPS,
     // Use network simplex algorithm in ranking
-    rankSimplex: false,
+    'rankSimplex': false,
     // Rank direction. Valid values are (TB, LR)
-    rankDir: "TB"
+    'rankDir': "TB"
   };
 
   // Phase functions
-  var position = require("./position")();
+  final position = new Position();
 
   // This layout object
-  var self = {};
+//  var self = {};
 
-  self.orderIters = util.propertyAccessor(self, config, "orderMaxSweeps");
+//  self.orderIters = util.propertyAccessor(self, config, "orderMaxSweeps");
+  Object get orderIters => config['orderMaxSweeps'];
 
-  self.rankSimplex = util.propertyAccessor(self, config, "rankSimplex");
+//  self.rankSimplex = util.propertyAccessor(self, config, "rankSimplex");
+  Object get rankSimplex => config['rankSimplex'];
 
-  self.nodeSep = delegateProperty(position.nodeSep);
-  self.edgeSep = delegateProperty(position.edgeSep);
-  self.universalSep = delegateProperty(position.universalSep);
-  self.rankSep = delegateProperty(position.rankSep);
-  self.rankDir = util.propertyAccessor(self, config, "rankDir");
-  self.debugAlignment = delegateProperty(position.debugAlignment);
+//  self.nodeSep = delegateProperty(position.nodeSep);
+  Object get nodeSep => position.nodeSep;
+//  self.edgeSep = delegateProperty(position.edgeSep);
+  Object get edgeSep => position.edgeSep;
+//  self.universalSep = delegateProperty(position.universalSep);
+  Object get universalSep => position.universalSep;
+//  self.rankSep = delegateProperty(position.rankSep);
+  Object get rankSep => position.rankSep;
+//  self.rankDir = util.propertyAccessor(self, config, "rankDir");
+  Object get rankDir => position.rankDir;
+//  self.debugAlignment = delegateProperty(position.debugAlignment);
+  Object get debugAlignment => position.debugAlignment;
 
-  self.debugLevel = util.propertyAccessor(self, config, "debugLevel", function(x) {
+  Object get debugLevel => config['debugLevel'];
+  void set debugLevel(x) {
     util.log.level = x;
     position.debugLevel(x);
-  });
+  }
 
-  self.run = util.time("Total layout", run);
+//  var run = util.time("Total layout", run);
 
-  self._normalize = normalize;
+//  var _normalize = normalize;
 
-  return self;
+//  return self;
 
   /*
    * Constructs an adjacency graph using the nodes and edges specified through
@@ -60,11 +71,11 @@ module.exports = function() {
    * After the adjacency graph is constructed the code no longer needs to use
    * the original nodes and edges passed in via config.
    */
-  function initLayoutGraph(inputGraph) {
+  initLayoutGraph(inputGraph) {
     var g = new CDigraph();
 
-    inputGraph.eachNode(function(u, value) {
-      if (value === undefined) value = {};
+    inputGraph.eachNode((u, value) {
+      if (value == undefined) value = {};
       g.addNode(u, {
         width: value.width,
         height: value.height
@@ -76,13 +87,13 @@ module.exports = function() {
 
     // Set up subgraphs
     if (inputGraph.parent) {
-      inputGraph.nodes().forEach(function(u) {
+      inputGraph.nodes().forEach((u) {
         g.parent(u, inputGraph.parent(u));
       });
     }
 
-    inputGraph.eachEdge(function(e, u, v, value) {
-      if (value === undefined) value = {};
+    inputGraph.eachEdge((e, u, v, value) {
+      if (value == undefined) value = {};
       var newValue = {
         e: e,
         minLen: value.minLen || 1,
@@ -104,19 +115,19 @@ module.exports = function() {
     return g;
   }
 
-  function run(inputGraph) {
+  run(inputGraph) {
     var rankSep = self.rankSep();
     var g;
     try {
       // Build internal graph
       g = util.time("initLayoutGraph", initLayoutGraph)(inputGraph);
 
-      if (g.order() === 0) {
+      if (g.order() == 0) {
         return g;
       }
 
       // Make space for edge labels
-      g.eachEdge(function(e, s, t, a) {
+      g.eachEdge((e, s, t, a) {
         a.minLen *= 2;
       });
       self.rankSep(rankSep / 2);
@@ -163,9 +174,9 @@ module.exports = function() {
    *
    * This method assumes that the input graph is cycle free.
    */
-  function normalize(g) {
+  normalize(g) {
     var dummyCount = 0;
-    g.eachEdge(function(e, s, t, a) {
+    g.eachEdge((e, s, t, a) {
       var sourceRank = g.node(s).rank;
       var targetRank = g.node(t).rank;
       if (sourceRank + 1 < targetRank) {
@@ -183,8 +194,8 @@ module.exports = function() {
           // point. For edges with 2 segments this will be the center dummy
           // node. For edges with more than two segments, this will be the
           // first and last dummy node.
-          if (i === 0) node.index = 0;
-          else if (rank + 1 === targetRank) node.index = 1;
+          if (i == 0) node.index = 0;
+          else if (rank + 1 == targetRank) node.index = 1;
 
           g.addNode(v, node);
           g.addEdge(null, u, v, {});
@@ -201,10 +212,10 @@ module.exports = function() {
    * dummy nodes are used to build an array of points for the original "long"
    * edge. Dummy nodes and edges are removed.
    */
-  function undoNormalize(g) {
-    g.eachNode(function(u, a) {
+  undoNormalize(g) {
+    g.eachNode((u, a) {
       if (a.dummy) {
-        if ("index" in a) {
+        if (a.containsKey("index")) {
           var edge = a.edge;
           if (!g.hasEdge(edge.id)) {
             g.addEdge(edge.id, edge.source, edge.target, edge.attrs);
@@ -221,30 +232,30 @@ module.exports = function() {
    * For each edge that was reversed during the `acyclic` step, reverse its
    * array of points.
    */
-  function fixupEdgePoints(g) {
-    g.eachEdge(function(e, s, t, a) { if (a.reversed) a.points.reverse(); });
+  fixupEdgePoints(g) {
+    g.eachEdge((e, s, t, a) { if (a.reversed) a.points.reverse(); });
   }
 
-  function createFinalGraph(g, isDirected) {
+  createFinalGraph(g, isDirected) {
     var out = isDirected ? new CDigraph() : new CGraph();
     out.graph(g.graph());
-    g.eachNode(function(u, value) { out.addNode(u, value); });
-    g.eachNode(function(u) { out.parent(u, g.parent(u)); });
-    g.eachEdge(function(e, u, v, value) {
+    g.eachNode((u, value) { out.addNode(u, value); });
+    g.eachNode((u) { out.parent(u, g.parent(u)); });
+    g.eachEdge((e, u, v, value) {
       out.addEdge(value.e, u, v, value);
     });
 
     // Attach bounding box information
     var maxX = 0, maxY = 0;
-    g.eachNode(function(u, value) {
+    g.eachNode((u, value) {
       if (!g.children(u).length) {
         maxX = Math.max(maxX, value.x + value.width / 2);
         maxY = Math.max(maxY, value.y + value.height / 2);
       }
     });
-    g.eachEdge(function(e, u, v, value) {
-      var maxXPoints = Math.max.apply(Math, value.points.map(function(p) { return p.x; }));
-      var maxYPoints = Math.max.apply(Math, value.points.map(function(p) { return p.y; }));
+    g.eachEdge((e, u, v, value) {
+      var maxXPoints = Math.max.apply(Math, value.points.map((p) { return p.x; }));
+      var maxYPoints = Math.max.apply(Math, value.points.map((p) { return p.y; }));
       maxX = Math.max(maxX, maxXPoints + value.width / 2);
       maxY = Math.max(maxY, maxYPoints + value.height / 2);
     });
@@ -258,12 +269,12 @@ module.exports = function() {
    * Given a function, a new function is returned that invokes the given
    * function. The return value from the function is always the `self` object.
    */
-  function delegateProperty(f) {
-    return function() {
-      if (!arguments.length) return f();
-      f.apply(null, arguments);
-      return self;
-    };
-  }
-};
+//  delegateProperty(f) {
+//    return () {
+//      if (!arguments.length) return f();
+//      f.apply(null, arguments);
+//      return self;
+//    };
+//  }
+}
 
