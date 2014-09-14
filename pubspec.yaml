@@ -1,0 +1,5 @@
+name: dagre
+description: Graph layout for Dart
+dependencies:
+  graphlib:
+    path: ../graphlib

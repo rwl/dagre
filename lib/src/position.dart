@@ -1,36 +1,42 @@
-"use strict";
-
-var util = require("./util");
+//"use strict";
+//
+//var util = require("./util");
 
 /*
  * The algorithms here are based on Brandes and Köpf, "Fast and Simple
  * Horizontal Coordinate Assignment".
  */
-module.exports = function() {
+//module.exports = function() {
+class Position {
   // External configuration
   var config = {
-    nodeSep: 50,
-    edgeSep: 10,
-    universalSep: null,
-    rankSep: 30
+    'nodeSep': 50,
+    'edgeSep': 10,
+    'universalSep': null,
+    'rankSep': 30
   };
 
-  var self = {};
+//  var self = {};
 
-  self.nodeSep = util.propertyAccessor(self, config, "nodeSep");
-  self.edgeSep = util.propertyAccessor(self, config, "edgeSep");
+//  self.nodeSep = util.propertyAccessor(self, config, "nodeSep");
+//  self.edgeSep = util.propertyAccessor(self, config, "edgeSep");
+  num get nodeSep => config['nodeSep'];
+  num get edgeSep => config['edgeSep'];
   // If not null this separation value is used for all nodes and edges
   // regardless of their widths. `nodeSep` and `edgeSep` are ignored with this
   // option.
-  self.universalSep = util.propertyAccessor(self, config, "universalSep");
-  self.rankSep = util.propertyAccessor(self, config, "rankSep");
-  self.debugLevel = util.propertyAccessor(self, config, "debugLevel");
+//  self.universalSep = util.propertyAccessor(self, config, "universalSep");
+//  self.rankSep = util.propertyAccessor(self, config, "rankSep");
+//  self.debugLevel = util.propertyAccessor(self, config, "debugLevel");
+  num get universalSep => config['universalSep'];
+  num get rankSep => config['rankSep'];
+  num get debugLevel => config['debugLevel'];
 
-  self.run = run;
+//  self.run = run;
 
-  return self;
+//  return self;
 
-  function run(g) {
+  run(g) {
     g = g.filterNodes(util.filterNonSubgraphs(g));
 
     var layering = util.ordering(g);
@@ -38,47 +44,47 @@ module.exports = function() {
     var conflicts = findConflicts(g, layering);
 
     var xss = {};
-    ["u", "d"].forEach(function(vertDir) {
-      if (vertDir === "d") layering.reverse();
+    ["u", "d"].forEach((vertDir) {
+      if (vertDir == "d") layering.reverse();
 
-      ["l", "r"].forEach(function(horizDir) {
-        if (horizDir === "r") reverseInnerOrder(layering);
+      ["l", "r"].forEach((horizDir) {
+        if (horizDir == "r") reverseInnerOrder(layering);
 
         var dir = vertDir + horizDir;
         var align = verticalAlignment(g, layering, conflicts,
-                                      vertDir === "u" ? "predecessors" : "successors");
+                                      vertDir == "u" ? "predecessors" : "successors");
         xss[dir]= horizontalCompaction(g, layering, align.pos, align.root, align.align);
 
         if (config.debugLevel >= 3)
           debugPositioning(vertDir + horizDir, g, layering, xss[dir]);
 
-        if (horizDir === "r") flipHorizontally(xss[dir]);
+        if (horizDir == "r") flipHorizontally(xss[dir]);
 
-        if (horizDir === "r") reverseInnerOrder(layering);
+        if (horizDir == "r") reverseInnerOrder(layering);
       });
 
-      if (vertDir === "d") layering.reverse();
+      if (vertDir == "d") layering.reverse();
     });
 
     balance(g, layering, xss);
 
-    g.eachNode(function(v) {
+    g.eachNode((v) {
       var xs = [];
       for (var alignment in xss) {
         var alignmentX = xss[alignment][v];
         posXDebug(alignment, g, v, alignmentX);
         xs.push(alignmentX);
       }
-      xs.sort(function(x, y) { return x - y; });
+      xs.sort((x, y) { return x - y; });
       posX(g, v, (xs[1] + xs[2]) / 2);
     });
 
     // Align y coordinates with ranks
-    var y = 0, reverseY = g.graph().rankDir === "BT" || g.graph().rankDir === "RL";
-    layering.forEach(function(layer) {
-      var maxHeight = util.max(layer.map(function(u) { return height(g, u); }));
+    var y = 0, reverseY = g.graph().rankDir == "BT" || g.graph().rankDir == "RL";
+    layering.forEach((layer) {
+      var maxHeight = util.max(layer.map((u) { return height(g, u); }));
       y += maxHeight / 2;
-      layer.forEach(function(u) {
+      layer.forEach((u) {
         posY(g, u, reverseY ? -y : y);
       });
       y += maxHeight / 2 + config.rankSep;
@@ -86,9 +92,9 @@ module.exports = function() {
 
     // Translate layout so that top left corner of bounding rectangle has
     // coordinate (0, 0).
-    var minX = util.min(g.nodes().map(function(u) { return posX(g, u) - width(g, u) / 2; }));
-    var minY = util.min(g.nodes().map(function(u) { return posY(g, u) - height(g, u) / 2; }));
-    g.eachNode(function(u) {
+    var minX = util.min(g.nodes().map((u) { return posX(g, u) - width(g, u) / 2; }));
+    var minY = util.min(g.nodes().map((u) { return posY(g, u) - height(g, u) / 2; }));
+    g.eachNode((u) {
       posX(g, u, posX(g, u) - minX);
       posY(g, u, posY(g, u) - minY);
     });
@@ -98,13 +104,13 @@ module.exports = function() {
    * Generate an ID that can be used to represent any undirected edge that is
    * incident on `u` and `v`.
    */
-  function undirEdgeId(u, v) {
+  undirEdgeId(u, v) {
     return u < v
       ? u.toString().length + ":" + u + "-" + v
       : v.toString().length + ":" + v + "-" + u;
   }
 
-  function findConflicts(g, layering) {
+  findConflicts(g, layering) {
     var conflicts = {}, // Set of conflicting edge ids
         pos = {},       // Position of node in its layer
         prevLayer,
@@ -116,14 +122,14 @@ module.exports = function() {
 
     if (layering.length <= 2) return conflicts;
 
-    function updateConflicts(v) {
+    updateConflicts(v) {
       var k = pos[v];
       if (k < k0 || k > k1) {
         conflicts[undirEdgeId(currLayer[l], v)] = true;
       }
     }
 
-    layering[1].forEach(function(u, i) { pos[u] = i; });
+    layering[1].forEach((u, i) { pos[u] = i; });
     for (var i = 1; i < layering.length - 1; ++i) {
       prevLayer = layering[i];
       currLayer = layering[i+1];
@@ -142,13 +148,13 @@ module.exports = function() {
           var uPred = g.predecessors(u)[0];
           // Note: In the case of self loops and sideways edges it is possible
           // for a dummy not to have a predecessor.
-          if (uPred !== undefined && g.node(uPred).dummy)
+          if (uPred != undefined && g.node(uPred).dummy)
             k1 = pos[uPred];
         }
-        if (k1 === undefined && l1 === currLayer.length - 1)
+        if (k1 == undefined && l1 == currLayer.length - 1)
           k1 = prevLayer.length - 1;
 
-        if (k1 !== undefined) {
+        if (k1 != undefined) {
           for (; l <= l1; ++l) {
             g.predecessors(currLayer[l]).forEach(updateConflicts);
           }
@@ -160,31 +166,31 @@ module.exports = function() {
     return conflicts;
   }
 
-  function verticalAlignment(g, layering, conflicts, relationship) {
+  verticalAlignment(g, layering, conflicts, relationship) {
     var pos = {},   // Position for a node in its layer
         root = {},  // Root of the block that the node participates in
         align = {}; // Points to the next node in the block or, if the last
                     // element in the block, points to the first block"s root
 
-    layering.forEach(function(layer) {
-      layer.forEach(function(u, i) {
+    layering.forEach((layer) {
+      layer.forEach((u, i) {
         root[u] = u;
         align[u] = u;
         pos[u] = i;
       });
     });
 
-    layering.forEach(function(layer) {
+    layering.forEach((layer) {
       var prevIdx = -1;
-      layer.forEach(function(v) {
+      layer.forEach((v) {
         var related = g[relationship](v), // Adjacent nodes from the previous layer
             mid;                          // The mid point in the related array
 
         if (related.length > 0) {
-          related.sort(function(x, y) { return pos[x] - pos[y]; });
+          related.sort((x, y) { return pos[x] - pos[y]; });
           mid = (related.length - 1) / 2;
-          related.slice(Math.floor(mid), Math.ceil(mid) + 1).forEach(function(u) {
-            if (align[v] === v) {
+          related.slice(Math.floor(mid), Math.ceil(mid) + 1).forEach((u) {
+            if (align[v] == v) {
               if (!conflicts[undirEdgeId(u, v)] && prevIdx < pos[u]) {
                 align[u] = v;
                 align[v] = root[v] = root[u];
@@ -203,15 +209,15 @@ module.exports = function() {
   // it takes into account the size of the nodes. Second it includes a fix to
   // the original algorithm that is described in Carstens, "Node and Label
   // Placement in a Layered Layout Algorithm".
-  function horizontalCompaction(g, layering, pos, root, align) {
+  horizontalCompaction(g, layering, pos, root, align) {
     var sink = {},       // Mapping of node id -> sink node id for class
         maybeShift = {}, // Mapping of sink node id -> { class node id, min shift }
         shift = {},      // Mapping of sink node id -> shift
         pred = {},       // Mapping of node id -> predecessor node (or null)
         xs = {};         // Calculated X positions
 
-    layering.forEach(function(layer) {
-      layer.forEach(function(u, i) {
+    layering.forEach((layer) {
+      layer.forEach((u, i) {
         sink[u] = u;
         maybeShift[u] = {};
         if (i > 0)
@@ -219,39 +225,39 @@ module.exports = function() {
       });
     });
 
-    function updateShift(toShift, neighbor, delta) {
-      if (!(neighbor in maybeShift[toShift])) {
+    updateShift(toShift, neighbor, delta) {
+      if (!(maybeShift[toShift].containsKey(neighbor))) {
         maybeShift[toShift][neighbor] = delta;
       } else {
         maybeShift[toShift][neighbor] = Math.min(maybeShift[toShift][neighbor], delta);
       }
     }
 
-    function placeBlock(v) {
-      if (!(v in xs)) {
+    placeBlock(v) {
+      if (!(xs.containsKey(v))) {
         xs[v] = 0;
         var w = v;
         do {
           if (pos[w] > 0) {
             var u = root[pred[w]];
             placeBlock(u);
-            if (sink[v] === v) {
+            if (sink[v] == v) {
               sink[v] = sink[u];
             }
             var delta = sep(g, pred[w]) + sep(g, w);
-            if (sink[v] !== sink[u]) {
+            if (sink[v] != sink[u]) {
               updateShift(sink[u], sink[v], xs[v] - xs[u] - delta);
             } else {
               xs[v] = Math.max(xs[v], xs[u] + delta);
             }
           }
           w = align[w];
-        } while (w !== v);
+        } while (w != v);
       }
     }
 
     // Root coordinates relative to sink
-    util.values(root).forEach(function(v) {
+    util.values(root).forEach((v) {
       placeBlock(v);
     });
 
@@ -259,15 +265,15 @@ module.exports = function() {
     // There is an assumption here that we"ve resolved shifts for any classes
     // that begin at an earlier layer. We guarantee this by visiting layers in
     // order.
-    layering.forEach(function(layer) {
-      layer.forEach(function(v) {
+    layering.forEach((layer) {
+      layer.forEach((v) {
         xs[v] = xs[root[v]];
-        if (v === root[v] && v === sink[v]) {
+        if (v == root[v] && v == sink[v]) {
           var minShift = 0;
-          if (v in maybeShift && Object.keys(maybeShift[v]).length > 0) {
+          if (maybeShift.containsKey(v) && Object.keys(maybeShift[v]).length > 0) {
             minShift = util.min(Object.keys(maybeShift[v])
-                                 .map(function(u) {
-                                      return maybeShift[v][u] + (u in shift ? shift[u] : 0);
+                                 .map((u) {
+                                      return maybeShift[v][u] + (shift.containsKey(u) ? shift[u] : 0);
                                       }
                                  ));
           }
@@ -276,8 +282,8 @@ module.exports = function() {
       });
     });
 
-    layering.forEach(function(layer) {
-      layer.forEach(function(v) {
+    layering.forEach((layer) {
+      layer.forEach((v) {
         xs[v] += shift[sink[root[v]]] || 0;
       });
     });
@@ -285,31 +291,31 @@ module.exports = function() {
     return xs;
   }
 
-  function findMinCoord(g, layering, xs) {
-    return util.min(layering.map(function(layer) {
+  findMinCoord(g, layering, xs) {
+    return util.min(layering.map((layer) {
       var u = layer[0];
       return xs[u];
     }));
   }
 
-  function findMaxCoord(g, layering, xs) {
-    return util.max(layering.map(function(layer) {
+  findMaxCoord(g, layering, xs) {
+    return util.max(layering.map((layer) {
       var u = layer[layer.length - 1];
       return xs[u];
     }));
   }
 
-  function balance(g, layering, xss) {
+  balance(g, layering, xss) {
     var min = {},                            // Min coordinate for the alignment
         max = {},                            // Max coordinate for the alginment
         smallestAlignment,
         shift = {};                          // Amount to shift a given alignment
 
-    function updateAlignment(v) {
+    updateAlignment(v) {
       xss[alignment][v] += shift[alignment];
     }
 
-    var smallest = Number.POSITIVE_INFINITY;
+    var smallest = double.INFINITY;
     for (var alignment in xss) {
       var xs = xss[alignment];
       min[alignment] = findMinCoord(g, layering, xs);
@@ -322,10 +328,10 @@ module.exports = function() {
     }
 
     // Determine how much to adjust positioning for each alignment
-    ["u", "d"].forEach(function(vertDir) {
-      ["l", "r"].forEach(function(horizDir) {
+    ["u", "d"].forEach((vertDir) {
+      ["l", "r"].forEach((horizDir) {
         var alignment = vertDir + horizDir;
-        shift[alignment] = horizDir === "l"
+        shift[alignment] = horizDir == "l"
             ? min[smallestAlignment] - min[alignment]
             : max[smallestAlignment] - max[alignment];
       });
@@ -337,19 +343,19 @@ module.exports = function() {
     }
   }
 
-  function flipHorizontally(xs) {
+  flipHorizontally(xs) {
     for (var u in xs) {
       xs[u] = -xs[u];
     }
   }
 
-  function reverseInnerOrder(layering) {
-    layering.forEach(function(layer) {
+  reverseInnerOrder(layering) {
+    layering.forEach((layer) {
       layer.reverse();
     });
   }
 
-  function width(g, u) {
+  width(g, u) {
     switch (g.graph().rankDir) {
       case "LR": return g.node(u).height;
       case "RL": return g.node(u).height;
@@ -357,7 +363,7 @@ module.exports = function() {
     }
   }
 
-  function height(g, u) {
+  height(g, u) {
     switch(g.graph().rankDir) {
       case "LR": return g.node(u).width;
       case "RL": return g.node(u).width;
@@ -365,8 +371,8 @@ module.exports = function() {
     }
   }
 
-  function sep(g, u) {
-    if (config.universalSep !== null) {
+  sep(g, u) {
+    if (config.universalSep != null) {
       return config.universalSep;
     }
     var w = width(g, u);
@@ -374,8 +380,8 @@ module.exports = function() {
     return (w + s) / 2;
   }
 
-  function posX(g, u, x) {
-    if (g.graph().rankDir === "LR" || g.graph().rankDir === "RL") {
+  posX(g, u, x) {
+    if (g.graph().rankDir == "LR" || g.graph().rankDir == "RL") {
       if (arguments.length < 3) {
         return g.node(u).y;
       } else {
@@ -390,8 +396,8 @@ module.exports = function() {
     }
   }
 
-  function posXDebug(name, g, u, x) {
-    if (g.graph().rankDir === "LR" || g.graph().rankDir === "RL") {
+  posXDebug(name, g, u, x) {
+    if (g.graph().rankDir == "LR" || g.graph().rankDir == "RL") {
       if (arguments.length < 3) {
         return g.node(u)[name];
       } else {
@@ -406,8 +412,8 @@ module.exports = function() {
     }
   }
 
-  function posY(g, u, y) {
-    if (g.graph().rankDir === "LR" || g.graph().rankDir === "RL") {
+  posY(g, u, y) {
+    if (g.graph().rankDir == "LR" || g.graph().rankDir == "RL") {
       if (arguments.length < 3) {
         return g.node(u).x;
       } else {
@@ -422,10 +428,10 @@ module.exports = function() {
     }
   }
 
-  function debugPositioning(align, g, layering, xs) {
-    layering.forEach(function(l, li) {
+  debugPositioning(align, g, layering, xs) {
+    layering.forEach((l, li) {
       var u, xU;
-      l.forEach(function(v) {
+      l.forEach((v) {
         var xV = xs[v];
         if (u) {
           var s = sep(g, u) + sep(g, v);
@@ -438,4 +444,4 @@ module.exports = function() {
       });
     });
   }
-};
+}

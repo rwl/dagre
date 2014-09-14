@@ -1,10 +1,10 @@
-"use strict";
-
-var util = require("./util"),
-    rank = require("./rank"),
-    order = require("./order"),
-    CGraph = require("graphlib").CGraph,
-    CDigraph = require("graphlib").CDigraph;
+//"use strict";
+//
+//var util = require("./util"),
+//    rank = require("./rank"),
+//    order = require("./order"),
+//    CGraph = require("graphlib").CGraph,
+//    CDigraph = require("graphlib").CDigraph;
 
 module.exports = function() {
   // External configuration

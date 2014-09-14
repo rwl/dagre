@@ -1,3 +1,9 @@
-/build
-/dist
-/node_modules
+out/
+packages
+pubspec.lock
+
+.idea/
+dagre.iml
+
+.project
+/.settings/
