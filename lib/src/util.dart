@@ -1,6 +1,9 @@
 library dagre.util;
 
 import 'dart:math' as Math;
+import 'dart:collection' show SplayTreeMap;
+
+import 'package:graphlib/graphlib.dart' show BaseGraph;
 
 /**
  * Returns the smallest value in the array.
@@ -16,12 +19,12 @@ max(Iterable values) {
   return values.reduce(Math.max);
 }
 
-/*
+/**
  * Returns `true` only if `f(x)` is `true` for all `x` in `xs`. Otherwise
  * returns `false`. This function will return immediately if it finds a
  * case where `f(x)` does not hold.
  */
-all(xs, f) {
+all(List xs, f(x)) {
   for (var i = 0; i < xs.length; ++i) {
     if (!f(xs[i])) {
       return false;
@@ -40,41 +43,46 @@ sum(values) {
 /*
  * Returns an array of all values in the given object.
  */
-values(obj) {
-  return Object.keys(obj).map((k) { return obj[k]; });
-}
+//values(obj) {
+//  return Object.keys(obj).map((k) { return obj[k]; });
+//}
 
-shuffle(array) {
+shuffle(List array) {
+  final r = new Math.Random();
   for (var i = array.length - 1; i > 0; --i) {
-    var j = Math.floor(Math.random() * (i + 1));
+    int j = (r.nextDouble() * (i + 1)).floor();
     var aj = array[j];
     array[j] = array[i];
     array[i] = aj;
   }
 }
 
-propertyAccessor(self, config, field, setHook) {
-  return (x) {
-    if (!arguments.length) return config[field];
-    config[field] = x;
-    if (setHook) setHook(x);
-    return self;
-  };
-}
+//propertyAccessor(self, config, field, setHook) {
+//  return (x) {
+//    if (!arguments.length) return config[field];
+//    config[field] = x;
+//    if (setHook) setHook(x);
+//    return self;
+//  };
+//}
 
-/*
+/**
  * Given a layered, directed graph with `rank` and `order` node attributes,
  * this function returns an array of ordered ranks. Each rank contains an array
  * of the ids of the nodes in that rank in the order specified by the `order`
  * attribute.
  */
-ordering(g) {
-  var ordering = [];
-  g.eachNode((u, value) {
-    var rank = ordering[value.rank] || (ordering[value.rank] = []);
-    rank[value.order] = u;
+List<List> ordering(BaseGraph g) {
+  final ordering = new SplayTreeMap<int, SplayTreeMap>();
+  g.eachNode((u, Map value) {
+    final r = value['rank'];
+    if (!ordering.containsKey(r)) {
+      ordering[r] = new SplayTreeMap();
+    }
+    final rank = ordering[r];
+    rank[value['order']] = u;
   });
-  return ordering;
+  return ordering.values.map((SplayTreeMap m) => m.values.toList()).toList();
 }
 
 /*
@@ -120,3 +128,12 @@ log(int level, String msg) {
 int log_level = 0;
 
 //exports.log = log;
+
+
+Set union(Iterable<Iterable> sets) {
+  var s = new Set();
+  for (var ss in sets) {
+    s = s.union(ss.toSet());
+  }
+  return s;
+}

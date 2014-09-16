@@ -20,7 +20,7 @@ import 'rank/rank.dart';
 //exports.run = run;
 //exports.restoreEdges = restoreEdges;
 
-/*
+/**
  * Heuristic function that assigns a rank to each node of the input graph with
  * the intent of minimizing edge lengths, while respecting the `minLen`
  * attribute of incident edges.
@@ -69,7 +69,7 @@ restoreEdges(g) {
   undo(g);
 }
 
-/*
+/**
  * Expand self loops into three dummy nodes. One will sit above the incident
  * node, one will be at the same level, and one below. The result looks like:
  *
@@ -83,7 +83,7 @@ restoreEdges(g) {
  * TODO: consolidate knowledge of dummy node construction.
  * TODO: support minLen = 2
  */
-expandSelfLoops(g) {
+expandSelfLoops(BaseGraph g) {
   g.eachEdge((e, u, v, a) {
     if (u == v) {
       var x = addDummyNode(g, e, u, v, a, 0, false),
@@ -98,7 +98,7 @@ expandSelfLoops(g) {
   });
 }
 
-expandSidewaysEdges(g) {
+expandSidewaysEdges(BaseGraph g) {
   g.eachEdge((e, u, v, a) {
     if (u == v) {
       var origEdge = a.originalEdge,
@@ -110,7 +110,7 @@ expandSidewaysEdges(g) {
   });
 }
 
-addDummyNode(g, e, u, v, Map a, index, bool isLabel) {
+addDummyNode(BaseGraph g, e, u, v, Map a, index, bool isLabel) {
   return g.addNode(null, {
     'width': isLabel ? a['width'] : 0,
     'height': isLabel ? a['height'] : 0,
@@ -120,7 +120,7 @@ addDummyNode(g, e, u, v, Map a, index, bool isLabel) {
   });
 }
 
-reorientEdges(g) {
+reorientEdges(BaseGraph g) {
   g.eachEdge((e, u, v, value) {
     if (g.node(u).rank > g.node(v).rank) {
       g.delEdge(e);
@@ -140,7 +140,7 @@ rankComponent(subgraph, useSimplex) {
   normalize(subgraph);
 }
 
-normalize(g) {
-  var m = util.min(g.nodes().map((u) { return g.node(u).rank; }));
-  g.eachNode((u, node) { node.rank -= m; });
+normalize(BaseGraph g) {
+  var m = util.min(g.nodes().map((u) { return g.node(u)['rank']; }));
+  g.eachNode((u, node) { node['rank'] -= m; });
 }

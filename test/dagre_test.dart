@@ -11,4 +11,3 @@ part 'layout_test.dart';
 part 'order_test.dart';
 part 'rank_test.dart';
 part 'smoke_test.dart';
-part 'util_test.dart';

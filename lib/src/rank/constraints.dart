@@ -1,7 +1,8 @@
 library dagre.rank.constraints;
-//"use strict";
 
-apply(g) {
+import 'package:graphlib/graphlib.dart';
+
+apply(Digraph g) {
   dfs(sg) {
     var rankSets = {};
     g.children(sg).forEach((u) {
@@ -31,7 +32,7 @@ apply(g) {
         redirectOutEdges(g, u, newU, prefRank == "max");
 
         // Save original node and remove it from reduced graph
-        g.node(newU).originalNodes.push({ 'u': u, 'value': value, 'parent': sg });
+        g.node(newU)['originalNodes'].add({ 'u': u, 'value': value, 'parent': sg });
         g.delNode(u);
       }
     });
@@ -55,7 +56,7 @@ redirectInEdges(g, u, newU, reverse) {
   g.inEdges(u).forEach((e) {
     var origValue = g.edge(e),
         value;
-    if (origValue.originalEdge) {
+    if (origValue['originalEdge'] != null) {
       value = origValue;
     } else {
       value =  {
@@ -65,14 +66,14 @@ redirectInEdges(g, u, newU, reverse) {
     }
 
     // Do not reverse edges for self-loops.
-    if (origValue.selfLoop) {
+    if (origValue['selfLoop'] != null) {
       reverse = false;
     }
 
     if (reverse) {
       // Ensure that all edges to min are reversed
       g.addEdge(null, newU, g.source(e), value);
-      value.reversed = true;
+      value['reversed'] = true;
     } else {
       g.addEdge(null, g.source(e), newU, value);
     }
@@ -81,9 +82,9 @@ redirectInEdges(g, u, newU, reverse) {
 
 redirectOutEdges(g, u, newU, reverse) {
   g.outEdges(u).forEach((e) {
-    var origValue = g.edge(e),
+    Map origValue = g.edge(e),
         value;
-    if (origValue.originalEdge) {
+    if (origValue['originalEdge'] != null) {
       value = origValue;
     } else {
       value =  {
@@ -93,38 +94,38 @@ redirectOutEdges(g, u, newU, reverse) {
     }
 
     // Do not reverse edges for self-loops.
-    if (origValue.selfLoop) {
+    if (origValue['selfLoop'] != null) {
       reverse = false;
     }
 
     if (reverse) {
       // Ensure that all edges from max are reversed
       g.addEdge(null, g.target(e), newU, value);
-      value.reversed = true;
+      value['reversed'] = true;
     } else {
       g.addEdge(null, newU, g.target(e), value);
     }
   });
 }
 
-addLightEdgesFromMinNode(g, sg, minNode) {
+addLightEdgesFromMinNode(Digraph g, sg, minNode) {
   if (minNode != null) {
     g.children(sg).forEach((u) {
       // The dummy check ensures we don"t add an edge if the node is involved
       // in a self loop or sideways edge.
-      if (u != minNode && !g.outEdges(minNode, u).length && !g.node(u)['dummy']) {
+      if (u != minNode && g.outEdges(minNode, u).length == 0 && !g.node(u)['dummy']) {
         g.addEdge(null, minNode, u, { 'minLen': 0 });
       }
     });
   }
 }
 
-addLightEdgesToMaxNode(g, sg, maxNode) {
+addLightEdgesToMaxNode(Digraph g, sg, maxNode) {
   if (maxNode != null) {
     g.children(sg).forEach((u) {
       // The dummy check ensures we don"t add an edge if the node is involved
       // in a self loop or sideways edge.
-      if (u != maxNode && !g.outEdges(u, maxNode).length && !g.node(u)['dummy']) {
+      if (u != maxNode && g.outEdges(u, maxNode).length == 0 && !g.node(u)['dummy']) {
         g.addEdge(null, u, maxNode, { 'minLen': 0 });
       }
     });
@@ -154,17 +155,17 @@ relax(g) {
   g.eachNode((u, Map value) {
     var originalNodes = value['originalNodes'];
     if (originalNodes != null) {
-      originalNodes.forEach((originalNode) {
-        originalNode.value.rank = value['rank'];
-        g.addNode(originalNode.u, originalNode.value);
-        g.parent(originalNode.u, originalNode.parent);
+      originalNodes.forEach((Map originalNode) {
+        originalNode['value']['rank'] = value['rank'];
+        g.addNode(originalNode['u'], originalNode['value']);
+        g.parent(originalNode['u'], originalNode['parent']);
       });
       g.delNode(u);
     }
   });
 
   // Restore original edges
-  originalEdges.forEach((edge) {
-    g.addEdge(edge.e, edge.u, edge.v, edge.value);
+  originalEdges.forEach((Map edge) {
+    g.addEdge(edge['e'], edge['u'], edge['v'], edge['value']);
   });
 }

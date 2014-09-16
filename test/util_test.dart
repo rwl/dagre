@@ -1,9 +1,9 @@
-part of dagre.test;
+library dagre.util.test;
 
-//var assert = require("./chai").assert,
-//    util = require("../lib/util");
+import 'package:unittest/unittest.dart';
+import 'package:dagre/src/util.dart' as util;
 
-sum() {
+sumTest() {
   group("util.sum", () {
     test("returns the sum of all elements in the array", () {
       expect(util.sum([1,2,3,4]), equals(10));
@@ -15,7 +15,7 @@ sum() {
   });
 }
 
-all() {
+allTest() {
   group("util.all", () {
     test("returns true if f(x) holds for all x in xs", () {
       expect(util.all([1,2,3,4], (x) {

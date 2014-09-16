@@ -28,7 +28,7 @@ layoutTest() {
       var outputGraph = new Layout().run(inputGraph);
 
       expect(outputGraph.graph().width, equals(100));
-      expect(outputGraph.graph().height, equals(20 + 30 + new Layout().rankSep()));
+      expect(outputGraph.graph().height, equals(20 + 30 + new Layout().rankSep));
     });
 
     test("ranks nodes left-to-right with rankDir=LR", () {

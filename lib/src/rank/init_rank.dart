@@ -15,18 +15,18 @@ part of dagre.rank;
  *  * The input graph must be acyclic
  *  * Each edge in the input graph must have an assigned "minLen" attribute
  */
-initRank(g) {
+initRank(Digraph g) {
   var sorted = topsort(g);
 
   sorted.forEach((u) {
     var inEdges = g.inEdges(u);
     if (inEdges.length == 0) {
-      g.node(u).rank = 0;
+      g.node(u)['rank'] = 0;
       return;
     }
 
     var minLens = inEdges.map((e) {
-      return g.node(g.source(e)).rank + g.edge(e).minLen;
+      return g.node(g.source(e))['rank'] + g.edge(e)['minLen'];
     });
     g.node(u).rank = util.max(minLens);
   });

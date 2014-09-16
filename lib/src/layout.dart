@@ -85,7 +85,7 @@ class Layout {
    * the original nodes and edges passed in via config.
    */
   initLayoutGraph(BaseGraph inputGraph) {
-    var g = new CDigraph();
+    final g = new CDigraph();
 
     inputGraph.eachNode((u, value) {
       if (value == null) value = {};
