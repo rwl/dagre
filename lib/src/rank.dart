@@ -1,4 +1,7 @@
-part of dagre;
+library dagre.rank;
+
+import 'util.dart' as util;
+
 //"use strict";
 //
 //var util = require("./util"),

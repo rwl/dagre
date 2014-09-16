@@ -1,3 +1,4 @@
+part of dagre.order;
 //"use strict";
 //
 //var util = require("../util");

@@ -1,4 +1,4 @@
-import 'package:unittest/unittest.dart';
+part of dagre.test;
 
 //var assert = require("./chai").assert,
 //    util = require("../lib/util");

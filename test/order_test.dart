@@ -1,4 +1,4 @@
-import 'package:unittest/unittest.dart';
+part of dagre.test;
 
 //var assert = require("./chai").assert,
 //    CDigraph = require("graphlib").CDigraph,

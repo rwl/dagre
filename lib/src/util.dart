@@ -111,10 +111,10 @@ time(name, func) {
  * will log a message to the console if `log.level >= level`.
  */
 log(level) {
-  if (log.level >= level) {
+  if (log_level >= level) {
     console.log.apply(console, Array.prototype.slice.call(arguments, 1));
   }
 }
-//log.level = 0;
+var log_level = 0;
 
 //exports.log = log;
