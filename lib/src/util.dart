@@ -1,18 +1,19 @@
 library dagre.util;
-//"use strict";
 
-/*
+import 'dart:math' as Math;
+
+/**
  * Returns the smallest value in the array.
  */
-min(values) {
-  return Math.min.apply(Math, values);
+min(Iterable values) {
+  return values.reduce(Math.min);
 }
 
-/*
+/**
  * Returns the largest value in the array.
  */
-max(values) {
-  return Math.max.apply(Math, values);
+max(Iterable values) {
+  return values.reduce(Math.max);
 }
 
 /*
@@ -92,17 +93,17 @@ filterNonSubgraphs(g) {
  *
  * The timer will be enabled provided `log.level >= 1`.
  */
-time(name, func) {
-  return () {
-    var start = new Date().getTime();
+Object time(String name, Function func) {
+  //return () {
+    final start = new DateTime.now().millisecondsSinceEpoch;
     try {
-      return func.apply(null, arguments);
+      return func();//.apply(null, arguments);
     } finally {
-      log(1, name + " time: " + (new Date().getTime() - start) + "ms");
+      log(1, "$name time: ${new DateTime.now().millisecondsSinceEpoch - start}ms");
     }
-  };
+  //};
 }
-//time.enabled = false;
+bool time_enabled = false;
 
 //exports.time = time;
 
@@ -110,11 +111,12 @@ time(name, func) {
  * A global logger with the specification `log(level, message, ...)` that
  * will log a message to the console if `log.level >= level`.
  */
-log(level) {
+log(int level, String msg) {
   if (log_level >= level) {
-    console.log.apply(console, Array.prototype.slice.call(arguments, 1));
+    //console.log.apply(console, Array.prototype.slice.call(arguments, 1));
+    print(msg);
   }
 }
-var log_level = 0;
+int log_level = 0;
 
 //exports.log = log;

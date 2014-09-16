@@ -1,29 +1,29 @@
-part of dagre.rank;
+library dagre.rank.constraints;
 //"use strict";
 
 apply(g) {
   dfs(sg) {
     var rankSets = {};
     g.children(sg).forEach((u) {
-      if (g.children(u).length) {
+      if (g.children(u).length != 0) {
         dfs(u);
         return;
       }
 
       var value = g.node(u),
-          prefRank = value.prefRank;
-      if (prefRank != undefined) {
+          prefRank = value['prefRank'];
+      if (prefRank != null) {
         if (!checkSupportedPrefRank(prefRank)) { return; }
 
         if (!(rankSets.containsKey(prefRank))) {
-          rankSets.prefRank = [u];
+          rankSets['prefRank'] = [u];
         } else {
-          rankSets.prefRank.push(u);
+          rankSets['prefRank'].add(u);
         }
 
         var newU = rankSets[prefRank];
-        if (newU == undefined) {
-          newU = rankSets[prefRank] = g.addNode(null, { originalNodes: [] });
+        if (newU == null) {
+          newU = rankSets[prefRank] = g.addNode(null, { 'originalNodes': [] });
           g.parent(newU, sg);
         }
 
@@ -31,13 +31,13 @@ apply(g) {
         redirectOutEdges(g, u, newU, prefRank == "max");
 
         // Save original node and remove it from reduced graph
-        g.node(newU).originalNodes.push({ u: u, value: value, parent: sg });
+        g.node(newU).originalNodes.push({ 'u': u, 'value': value, 'parent': sg });
         g.delNode(u);
       }
     });
 
-    addLightEdgesFromMinNode(g, sg, rankSets.min);
-    addLightEdgesToMaxNode(g, sg, rankSets.max);
+    addLightEdgesFromMinNode(g, sg, rankSets['min']);
+    addLightEdgesToMaxNode(g, sg, rankSets['max']);
   }
 
   dfs(null);
@@ -45,7 +45,7 @@ apply(g) {
 
 checkSupportedPrefRank(prefRank) {
   if (prefRank != "min" && prefRank != "max" && prefRank.indexOf("same_") != 0) {
-    console.error("Unsupported rank type: " + prefRank);
+    /*console.error*/print("Unsupported rank type: " + prefRank);
     return false;
   }
   return true;
@@ -59,8 +59,8 @@ redirectInEdges(g, u, newU, reverse) {
       value = origValue;
     } else {
       value =  {
-        originalEdge: { e: e, u: g.source(e), v: g.target(e), value: origValue },
-        minLen: g.edge(e).minLen
+        'originalEdge': { 'e': e, 'u': g.source(e), 'v': g.target(e), 'value': origValue },
+        'minLen': g.edge(e)['minLen']
       };
     }
 
@@ -87,8 +87,8 @@ redirectOutEdges(g, u, newU, reverse) {
       value = origValue;
     } else {
       value =  {
-        originalEdge: { e: e, u: g.source(e), v: g.target(e), value: origValue },
-        minLen: g.edge(e).minLen
+        'originalEdge': { 'e': e, 'u': g.source(e), 'v': g.target(e), 'value': origValue },
+        'minLen': g.edge(e)['minLen']
       };
     }
 
@@ -108,24 +108,24 @@ redirectOutEdges(g, u, newU, reverse) {
 }
 
 addLightEdgesFromMinNode(g, sg, minNode) {
-  if (minNode != undefined) {
+  if (minNode != null) {
     g.children(sg).forEach((u) {
       // The dummy check ensures we don"t add an edge if the node is involved
       // in a self loop or sideways edge.
-      if (u != minNode && !g.outEdges(minNode, u).length && !g.node(u).dummy) {
-        g.addEdge(null, minNode, u, { minLen: 0 });
+      if (u != minNode && !g.outEdges(minNode, u).length && !g.node(u)['dummy']) {
+        g.addEdge(null, minNode, u, { 'minLen': 0 });
       }
     });
   }
 }
 
 addLightEdgesToMaxNode(g, sg, maxNode) {
-  if (maxNode != undefined) {
+  if (maxNode != null) {
     g.children(sg).forEach((u) {
       // The dummy check ensures we don"t add an edge if the node is involved
       // in a self loop or sideways edge.
-      if (u != maxNode && !g.outEdges(u, maxNode).length && !g.node(u).dummy) {
-        g.addEdge(null, u, maxNode, { minLen: 0 });
+      if (u != maxNode && !g.outEdges(u, maxNode).length && !g.node(u)['dummy']) {
+        g.addEdge(null, u, maxNode, { 'minLen': 0 });
       }
     });
   }
@@ -143,19 +143,19 @@ addLightEdgesToMaxNode(g, sg, maxNode) {
 relax(g) {
   // Save original edges
   var originalEdges = [];
-  g.eachEdge((e, u, v, value) {
-    var originalEdge = value.originalEdge;
-    if (originalEdge) {
-      originalEdges.push(originalEdge);
+  g.eachEdge((e, u, v, Map value) {
+    var originalEdge = value['originalEdge'];
+    if (originalEdge != null) {
+      originalEdges.add(originalEdge);
     }
   });
 
   // Expand collapsed nodes
-  g.eachNode((u, value) {
-    var originalNodes = value.originalNodes;
-    if (originalNodes) {
+  g.eachNode((u, Map value) {
+    var originalNodes = value['originalNodes'];
+    if (originalNodes != null) {
       originalNodes.forEach((originalNode) {
-        originalNode.value.rank = value.rank;
+        originalNode.value.rank = value['rank'];
         g.addNode(originalNode.u, originalNode.value);
         g.parent(originalNode.u, originalNode.parent);
       });

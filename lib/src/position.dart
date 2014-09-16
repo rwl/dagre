@@ -10,34 +10,40 @@ part of dagre;
 //module.exports = function() {
 class Position {
   // External configuration
-  var config = {
+  /*var config = {
     'nodeSep': 50,
     'edgeSep': 10,
     'universalSep': null,
     'rankSep': 30
-  };
+  };*/
+  num nodeSep = 50;
+  num edgeSep = 10;
+  num universalSep = null;
+  num rankSep = 30;
 
 //  var self = {};
 
 //  self.nodeSep = util.propertyAccessor(self, config, "nodeSep");
 //  self.edgeSep = util.propertyAccessor(self, config, "edgeSep");
-  num get nodeSep => config['nodeSep'];
-  num get edgeSep => config['edgeSep'];
+  //num get nodeSep => config['nodeSep'];
+  //num get edgeSep => config['edgeSep'];
+
   // If not null this separation value is used for all nodes and edges
   // regardless of their widths. `nodeSep` and `edgeSep` are ignored with this
   // option.
 //  self.universalSep = util.propertyAccessor(self, config, "universalSep");
 //  self.rankSep = util.propertyAccessor(self, config, "rankSep");
 //  self.debugLevel = util.propertyAccessor(self, config, "debugLevel");
-  num get universalSep => config['universalSep'];
-  num get rankSep => config['rankSep'];
-  num get debugLevel => config['debugLevel'];
+  //num get universalSep => config['universalSep'];
+  //num get rankSep => config['rankSep'];
+  //num get debugLevel => config['debugLevel'];
+  int debugLevel = 0;
 
 //  self.run = run;
 
 //  return self;
 
-  run(g) {
+  run(BaseGraph g) {
     g = g.filterNodes(util.filterNonSubgraphs(g));
 
     var layering = util.ordering(g);
@@ -56,8 +62,9 @@ class Position {
                                       vertDir == "u" ? "predecessors" : "successors");
         xss[dir]= horizontalCompaction(g, layering, align.pos, align.root, align.align);
 
-        if (config.debugLevel >= 3)
+        if (debugLevel >= 3) {
           debugPositioning(vertDir + horizDir, g, layering, xss[dir]);
+        }
 
         if (horizDir == "r") flipHorizontally(xss[dir]);
 
@@ -69,12 +76,12 @@ class Position {
 
     balance(g, layering, xss);
 
-    g.eachNode((v) {
+    g.eachNode((v, _) {
       var xs = [];
       for (var alignment in xss) {
         var alignmentX = xss[alignment][v];
         posXDebug(alignment, g, v, alignmentX);
-        xs.push(alignmentX);
+        xs.add(alignmentX);
       }
       xs.sort((x, y) { return x - y; });
       posX(g, v, (xs[1] + xs[2]) / 2);
@@ -88,14 +95,14 @@ class Position {
       layer.forEach((u) {
         posY(g, u, reverseY ? -y : y);
       });
-      y += maxHeight / 2 + config.rankSep;
+      y += maxHeight / 2 + this.rankSep;
     });
 
     // Translate layout so that top left corner of bounding rectangle has
     // coordinate (0, 0).
     var minX = util.min(g.nodes().map((u) { return posX(g, u) - width(g, u) / 2; }));
     var minY = util.min(g.nodes().map((u) { return posY(g, u) - height(g, u) / 2; }));
-    g.eachNode((u) {
+    g.eachNode((u, _) {
       posX(g, u, posX(g, u) - minX);
       posY(g, u, posY(g, u) - minY);
     });
@@ -143,19 +150,19 @@ class Position {
         var u = currLayer[l1]; // Next inner segment in the current layer or
                                // last node in the current layer
         pos[u] = l1;
-        k1 = undefined;
+        k1 = null;
 
         if (g.node(u).dummy) {
           var uPred = g.predecessors(u)[0];
           // Note: In the case of self loops and sideways edges it is possible
           // for a dummy not to have a predecessor.
-          if (uPred != undefined && g.node(uPred).dummy)
+          if (uPred != null && g.node(uPred).dummy)
             k1 = pos[uPred];
         }
-        if (k1 == undefined && l1 == currLayer.length - 1)
+        if (k1 == null && l1 == currLayer.length - 1)
           k1 = prevLayer.length - 1;
 
-        if (k1 != undefined) {
+        if (k1 != null) {
           for (; l <= l1; ++l) {
             g.predecessors(currLayer[l]).forEach(updateConflicts);
           }
@@ -190,7 +197,7 @@ class Position {
         if (related.length > 0) {
           related.sort((x, y) { return pos[x] - pos[y]; });
           mid = (related.length - 1) / 2;
-          related.slice(Math.floor(mid), Math.ceil(mid) + 1).forEach((u) {
+          related.slice(mid.floor(), mid.ceil() + 1).forEach((u) {
             if (align[v] == v) {
               if (!conflicts[undirEdgeId(u, v)] && prevIdx < pos[u]) {
                 align[u] = v;
@@ -271,8 +278,8 @@ class Position {
         xs[v] = xs[root[v]];
         if (v == root[v] && v == sink[v]) {
           var minShift = 0;
-          if (maybeShift.containsKey(v) && Object.keys(maybeShift[v]).length > 0) {
-            minShift = util.min(Object.keys(maybeShift[v])
+          if (maybeShift.containsKey(v) && maybeShift[v].keys.length > 0) {
+            minShift = util.min(maybeShift[v].keys
                                  .map((u) {
                                       return maybeShift[v][u] + (shift.containsKey(u) ? shift[u] : 0);
                                       }
@@ -285,7 +292,7 @@ class Position {
 
     layering.forEach((layer) {
       layer.forEach((v) {
-        xs[v] += shift[sink[root[v]]] || 0;
+        xs[v] += (shift[sink[root[v]]] != null ? shift[sink[root[v]]] : 0);
       });
     });
 
@@ -310,14 +317,15 @@ class Position {
     var min = {},                            // Min coordinate for the alignment
         max = {},                            // Max coordinate for the alginment
         smallestAlignment,
-        shift = {};                          // Amount to shift a given alignment
+        shift = {},                          // Amount to shift a given alignment
+        alignment;
 
     updateAlignment(v) {
       xss[alignment][v] += shift[alignment];
     }
 
     var smallest = double.INFINITY;
-    for (var alignment in xss) {
+    for (alignment in xss) {
       var xs = xss[alignment];
       min[alignment] = findMinCoord(g, layering, xs);
       max[alignment] = findMaxCoord(g, layering, xs);
@@ -356,7 +364,7 @@ class Position {
     });
   }
 
-  width(g, u) {
+  width(BaseGraph g, u) {
     switch (g.graph().rankDir) {
       case "LR": return g.node(u).height;
       case "RL": return g.node(u).height;
@@ -364,7 +372,7 @@ class Position {
     }
   }
 
-  height(g, u) {
+  height(BaseGraph g, u) {
     switch(g.graph().rankDir) {
       case "LR": return g.node(u).width;
       case "RL": return g.node(u).width;
@@ -372,24 +380,24 @@ class Position {
     }
   }
 
-  sep(g, u) {
-    if (config.universalSep != null) {
-      return config.universalSep;
+  sep(BaseGraph g, u) {
+    if (universalSep != null) {
+      return universalSep;
     }
     var w = width(g, u);
-    var s = g.node(u).dummy ? config.edgeSep : config.nodeSep;
+    var s = g.node(u).dummy ? edgeSep : nodeSep;
     return (w + s) / 2;
   }
 
-  posX(g, u, x) {
+  posX(BaseGraph g, u, [x=null]) {
     if (g.graph().rankDir == "LR" || g.graph().rankDir == "RL") {
-      if (arguments.length < 3) {
+      if (x == null) {
         return g.node(u).y;
       } else {
         g.node(u).y = x;
       }
     } else {
-      if (arguments.length < 3) {
+      if (x == null) {
         return g.node(u).x;
       } else {
         g.node(u).x = x;
@@ -397,15 +405,15 @@ class Position {
     }
   }
 
-  posXDebug(name, g, u, x) {
+  posXDebug(name, BaseGraph g, u, [x=null]) {
     if (g.graph().rankDir == "LR" || g.graph().rankDir == "RL") {
-      if (arguments.length < 3) {
+      if (x == null) {
         return g.node(u)[name];
       } else {
         g.node(u)[name] = x;
       }
     } else {
-      if (arguments.length < 3) {
+      if (x == null) {
         return g.node(u)[name];
       } else {
         g.node(u)[name] = x;
@@ -413,15 +421,15 @@ class Position {
     }
   }
 
-  posY(g, u, y) {
+  posY(BaseGraph g, u, [y=null]) {
     if (g.graph().rankDir == "LR" || g.graph().rankDir == "RL") {
-      if (arguments.length < 3) {
+      if (y == null) {
         return g.node(u).x;
       } else {
         g.node(u).x = y;
       }
     } else {
-      if (arguments.length < 3) {
+      if (y == null) {
         return g.node(u).y;
       } else {
         g.node(u).y = y;
@@ -429,7 +437,7 @@ class Position {
     }
   }
 
-  debugPositioning(align, g, layering, xs) {
+  debugPositioning(align, BaseGraph g, layering, xs) {
     layering.forEach((l, li) {
       var u, xU;
       l.forEach((v) {
@@ -437,8 +445,8 @@ class Position {
         if (u) {
           var s = sep(g, u) + sep(g, v);
           if (xV - xU < s)
-            console.log("Position phase: sep violation. Align: " + align + ". Layer: " + li + ". " +
-              "U: " + u + " V: " + v + ". Actual sep: " + (xV - xU) + " Expected sep: " + s);
+            print("Position phase: sep violation. Align: $align. Layer: $li. " +
+              "U: $u V: $v. Actual sep: ${xV - xU} Expected sep: $s");
         }
         u = v;
         xU = xV;

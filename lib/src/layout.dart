@@ -56,7 +56,7 @@ class Layout {
   //Object get rankDir => config.rankDir;
   //void set rankDir(val) { config.rankDir = val; }
 //  self.debugAlignment = delegateProperty(position.debugAlignment);
-  Object get debugAlignment => position.debugAlignment;
+  //Object get debugAlignment => position.debugAlignment;
 
   int get debugLevel => _debugLevel;
   void set debugLevel(int x) {
@@ -90,8 +90,8 @@ class Layout {
     inputGraph.eachNode((u, value) {
       if (value == null) value = {};
       g.addNode(u, {
-        'width': value.width,
-        'height': value.height
+        'width': value['width'],
+        'height': value['height']
       });
       if (value.containsKey("rank")) {
         g.node(u)['prefRank'] = value['rank'];
@@ -99,7 +99,7 @@ class Layout {
     });
 
     // Set up subgraphs
-    if (inputGraph.parent) {
+    if (inputGraph.isCompound()) {
       inputGraph.nodes().forEach((u) {
         g.parent(u, inputGraph.parent(u));
       });
@@ -133,7 +133,7 @@ class Layout {
     var g;
     try {
       // Build internal graph
-      g = util.time("initLayoutGraph", initLayoutGraph)(inputGraph);
+      g = util.time("initLayoutGraph", () => initLayoutGraph(inputGraph));
 
       if (g.order() == 0) {
         return g;
@@ -141,38 +141,38 @@ class Layout {
 
       // Make space for edge labels
       g.eachEdge((e, s, t, a) {
-        a.minLen *= 2;
+        a['minLen'] *= 2;
       });
       this.rankSep = rankSep / 2;
 
       // Determine the rank for each node. Nodes with a lower rank will appear
       // above nodes of higher rank.
-      util.time("rank.run", rank.run)(g, this.rankSimplex);
+      util.time("rank.run", () => rank.run(g, this.rankSimplex));
 
       // Normalize the graph by ensuring that every edge is proper (each edge has
       // a length of 1). We achieve this by adding dummy nodes to long edges,
       // thus shortening them.
-      util.time("normalize", normalize)(g);
+      util.time("normalize", () => normalize(g));
 
       // Order the nodes so that edge crossings are minimized.
-      util.time("order", order)(g, this.orderMaxSweeps);
+      util.time("order", () => order(g, this.orderMaxSweeps));
 
       // Find the x and y coordinates for every node in the graph.
-      util.time("position", position.run)(g);
+      util.time("position", () => position.run(g));
 
       // De-normalize the graph by removing dummy nodes and augmenting the
       // original long edges with coordinate information.
-      util.time("undoNormalize", undoNormalize)(g);
+      util.time("undoNormalize", () => undoNormalize(g));
 
       // Reverses points for edges that are in a reversed state.
-      util.time("fixupEdgePoints", fixupEdgePoints)(g);
+      util.time("fixupEdgePoints", () => fixupEdgePoints(g));
 
       // Restore delete edges and reverse edges that were reversed in the rank
       // phase.
-      util.time("rank.restoreEdges", rank.restoreEdges)(g);
+      util.time("rank.restoreEdges", () => rank.restoreEdges(g));
 
       // Construct final result graph and return it
-      return util.time("createFinalGraph", createFinalGraph)(g, inputGraph.isDirected());
+      return util.time("createFinalGraph", () => createFinalGraph(g, inputGraph.isDirected()));
     } finally {
       this.rankSep = rankSep;
     }
@@ -193,11 +193,12 @@ class Layout {
       var sourceRank = g.node(s)['rank'];
       var targetRank = g.node(t)['rank'];
       if (sourceRank + 1 < targetRank) {
-        for (var u = s, rank = sourceRank + 1, i = 0; rank < targetRank; ++rank, ++i) {
+        var u = s;
+        for (var rank = sourceRank + 1, i = 0; rank < targetRank; ++rank, ++i) {
           var v = "_D" + (++dummyCount);
           var node = {
-            'width': a.width,
-            'height': a.height,
+            'width': a['width'],
+            'height': a['height'],
             'edge': { 'id': e, 'source': s, 'target': t, 'attrs': a },
             'rank': rank,
             'dummy': true
@@ -261,19 +262,19 @@ class Layout {
     // Attach bounding box information
     var maxX = 0, maxY = 0;
     g.eachNode((u, value) {
-      if (!g.children(u).length) {
-        maxX = Math.max(maxX, value.x + value.width / 2);
-        maxY = Math.max(maxY, value.y + value.height / 2);
+      if (g.children(u).length == 0) {
+        maxX = Math.max(maxX, value.x + value['width'] / 2);
+        maxY = Math.max(maxY, value.y + value['height'] / 2);
       }
     });
     g.eachEdge((e, u, v, value) {
       var maxXPoints = value.points.map((p) { return p.x; }).reduce(Math.max);
       var maxYPoints = value.points.map((p) { return p.y; }).reduce(Math.max);
-      maxX = Math.max(maxX, maxXPoints + value.width / 2);
-      maxY = Math.max(maxY, maxYPoints + value.height / 2);
+      maxX = Math.max(maxX, maxXPoints + value['width'] / 2);
+      maxY = Math.max(maxY, maxYPoints + value['height'] / 2);
     });
-    out.graph().width = maxX;
-    out.graph().height = maxY;
+    out.graph()['width'] = maxX;
+    out.graph()['height'] = maxY;
 
     return out;
   }

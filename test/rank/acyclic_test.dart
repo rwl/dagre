@@ -1,4 +1,4 @@
-import 'package:unittest/unittest.dart';
+part of dagre.rank.test;
 
 //var assert = require("../chai").assert,
 //    dot = require("graphlib-dot"),
