@@ -19,7 +19,7 @@ buildWeightGraphTest() {
       g.addNode(1);
 
       var result = buildWeightGraph(g);
-      expect(result.nodes(), same(g.nodes()));
+      expect(result.nodes(), unorderedEquals(g.nodes()));
     });
 
     test("returns a weight of 1 for a single forward edge", () {

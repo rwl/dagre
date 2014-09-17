@@ -3,3 +3,6 @@ description: Graph layout for Dart
 dependencies:
   graphlib:
     path: ../graphlib
+dev_dependencies:
+  graphlib_dot:
+    path: ../graphlib_dot

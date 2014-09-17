@@ -5,7 +5,7 @@ acyclicTest() {
     test("does not change acyclic graphs", () {
       var g = dot.parse("digraph { A -> B; C }");
       acyclic(g);
-      expect(g.nodes().sort(), equals(["A", "B", "C"]));
+      expect(g.nodes()..sort(), equals(["A", "B", "C"]));
       expect(g.successors("A"), equals(["B"]));
       assertAcyclic(g);
     });
@@ -14,7 +14,7 @@ acyclicTest() {
       var g = dot.parse("digraph { A -> B [id=AB]; B -> A [id=BA] }");
       expect(isAcyclic(g), isFalse);
       acyclic(g);
-      expect(g.nodes().sort(), equals(["A", "B"]));
+      expect(g.nodes()..sort(), equals(["A", "B"]));
       expect(g.source("AB"), isNot(equals(g.target("AB"))));
       expect(g.target("AB"), equals(g.target("BA")));
       expect(g.source("AB"), equals(g.source("BA")));
@@ -42,7 +42,7 @@ acyclicTest() {
       g.graph({});
       acyclic(g);
       undo(g);
-      expect(g.nodes().sort(), equals(["A", "B"]));
+      expect(g.nodes()..sort(), equals(["A", "B"]));
       expect(g.source("AB"), equals("A"));
       expect(g.target("AB"), equals("B"));
       expect(g.source("BA"), equals("B"));

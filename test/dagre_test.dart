@@ -7,6 +7,7 @@ import 'package:unittest/unittest.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:graphlib/graphlib.dart';
+import 'package:graphlib_dot/graphlib_dot.dart' as dot;
 import 'package:dagre/dagre.dart';
 import 'package:dagre/src/util.dart' as util;
 

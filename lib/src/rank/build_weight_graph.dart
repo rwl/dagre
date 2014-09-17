@@ -28,9 +28,11 @@ Digraph buildWeightGraph(BaseGraph g) {
       result.addEdge(id, u, v, { 'weight': 0, 'minLen': 0 });
     }
     Map resultEdge = result.edge(id);
-    resultEdge['weight'] += (value['reversed'] ? -1 : 1);
-    resultEdge['minLen'] = (value['reversed'] ? -1 : 1) *
-                            Math.max(resultEdge['minLen'].abs(), value['minLen'].abs());
+    final rev = value.containsKey('reversed') && value['reversed'] ? -1 : 1;
+    resultEdge['weight'] += rev;
+    resultEdge['minLen'] = rev * Math.max(
+        resultEdge.containsKey('minLen') ? resultEdge['minLen'].abs() : double.NAN,
+        value.containsKey('minLen') ? value['minLen'].abs() : double.NAN);
   });
   return result;
 }
@@ -40,5 +42,6 @@ Digraph buildWeightGraph(BaseGraph g) {
  * incident on the same two nodes.
  */
 String incidenceId(u, v) {
-  return u < v ?  "${u.length}:$u-$v" : "${v.length}:$v-$u";
+  //return u < v ? "${u.length}:$u-$v" : "${v.length}:$v-$u";
+  return u < v ? ":$u-$v" : ":$v-$u";
 }

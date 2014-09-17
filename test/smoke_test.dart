@@ -29,7 +29,7 @@ smokeTest() {
       Digraph g;
       try {
         final contents = file.readAsStringSync();
-        g = dot.parse(file);
+        g = dot.parse(contents);
       } on FileSystemException catch (e) {
         fail(e.message);
         return null;
