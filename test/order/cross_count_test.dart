@@ -1,8 +1,4 @@
-import 'package:unittest/unittest.dart';
-
-//var assert = require("../chai").assert,
-//    Digraph = require("graphlib").Digraph,
-//    crossCount = require("../../lib/order/crossCount");
+part of dagre.order.test;
 
 crossCountTest() {
   group("crossCount", () {
@@ -17,12 +13,12 @@ crossCountTest() {
     });
 
     test("calculates 0 crossings for 2 layers with no crossings", () {
-      g.addNode("A1", { rank: 0, order: 0 });
-      g.addNode("A2", { rank: 0, order: 1 });
-      g.addNode("A3", { rank: 0, order: 2 });
-      g.addNode("B1", { rank: 1, order: 0 });
-      g.addNode("B2", { rank: 1, order: 1 });
-      g.addNode("B3", { rank: 1, order: 2 });
+      g.addNode("A1", { 'rank': 0, 'order': 0 });
+      g.addNode("A2", { 'rank': 0, 'order': 1 });
+      g.addNode("A3", { 'rank': 0, 'order': 2 });
+      g.addNode("B1", { 'rank': 1, 'order': 0 });
+      g.addNode("B2", { 'rank': 1, 'order': 1 });
+      g.addNode("B3", { 'rank': 1, 'order': 2 });
       g.addEdge(null, "A1", "B1");
       g.addEdge(null, "A2", "B2");
       g.addEdge(null, "A3", "B3");
@@ -30,11 +26,11 @@ crossCountTest() {
     });
 
     test("calculates correctly a simple crossing between two layers", () {
-      g.addNode("A1", { rank: 0, order: 0 });
-      g.addNode("A2", { rank: 0, order: 1 });
-      g.addNode("A3", { rank: 0, order: 2 });
-      g.addNode("B1", { rank: 1, order: 0 });
-      g.addNode("B2", { rank: 1, order: 1 });
+      g.addNode("A1", { 'rank': 0, 'order': 0 });
+      g.addNode("A2", { 'rank': 0, 'order': 1 });
+      g.addNode("A3", { 'rank': 0, 'order': 2 });
+      g.addNode("B1", { 'rank': 1, 'order': 0 });
+      g.addNode("B2", { 'rank': 1, 'order': 1 });
       g.addEdge(null, "A1", "B1");
       g.addEdge(null, "A2", "B1");
       g.addEdge(null, "A2", "B2");
@@ -46,11 +42,11 @@ crossCountTest() {
     });
 
     test("calculates correctly multiple crossings between two layers", () {
-      g.addNode("A1", { rank: 0, order: 0 });
-      g.addNode("A2", { rank: 0, order: 1 });
-      g.addNode("A3", { rank: 0, order: 2 });
-      g.addNode("B1", { rank: 1, order: 0 });
-      g.addNode("B2", { rank: 1, order: 1 });
+      g.addNode("A1", { 'rank': 0, 'order': 0 });
+      g.addNode("A2", { 'rank': 0, 'order': 1 });
+      g.addNode("A3", { 'rank': 0, 'order': 2 });
+      g.addNode("B1", { 'rank': 1, 'order': 0 });
+      g.addNode("B2", { 'rank': 1, 'order': 1 });
       g.addEdge(null, "A1", "B2");
       g.addEdge(null, "A2", "B1");
       g.addEdge(null, "A2", "B2");
@@ -62,12 +58,12 @@ crossCountTest() {
     });
 
     test("calculates correctly crossings between three layers", () {
-      g.addNode("A1", { rank: 0, order: 0 });
-      g.addNode("A2", { rank: 0, order: 1 });
-      g.addNode("B1", { rank: 1, order: 0 });
-      g.addNode("B2", { rank: 1, order: 1 });
-      g.addNode("C1", { rank: 2, order: 0 });
-      g.addNode("C2", { rank: 2, order: 1 });
+      g.addNode("A1", { 'rank': 0, 'order': 0 });
+      g.addNode("A2", { 'rank': 0, 'order': 1 });
+      g.addNode("B1", { 'rank': 1, 'order': 0 });
+      g.addNode("B2", { 'rank': 1, 'order': 1 });
+      g.addNode("C1", { 'rank': 2, 'order': 0 });
+      g.addNode("C2", { 'rank': 2, 'order': 1 });
       g.addEdge(null, "A1", "B2");
       g.addEdge(null, "A2", "B1");
       g.addEdge(null, "B1", "C2");

@@ -11,38 +11,47 @@ part of dagre.test;
 
 smokeTest() {
   group("smoke tests", () {
-    var fileNames;
+    List<String> fileNames;
 
-    if (process.env.containsKey("SMOKE_TESTS")) {
-      fileNames = process.env.SMOKE_TESTS.spltest(" ");
+    if (Platform.environment.containsKey("SMOKE_TESTS")) {
+      fileNames = Platform.environment['SMOKE_TESTS'].split(" ");
     } else {
-      var smokeDir = path.join(__dirname, "smoke");
-      fileNames = fs.readdirSync(smokeDir)
-                        .filter((x) { return x.slice(-4) == ".dot"; })
-                        .map((x) { return path.join(smokeDir, x); });
+      final smokeDir = new Directory(path.join(Uri.base.toFilePath(), "smoke"));
+      fileNames = smokeDir.listSync(followLinks: false)
+                        .where((x) { return FileSystemEntity.isFileSync(x.path); })
+                        .map((x) { return x.path; })
+                        .where((x) { return x.slice(-4) == ".dot"; })
+                        .map((x) { return path.join(smokeDir.path, x); });
     }
 
     fileNames.forEach((fileName) {
-      var file = fs.readFileSync(fileName, "utf8"),
-          g = dot.parse(file);
+      final file = new File(fileName);
+      Digraph g;
+      try {
+        final contents = file.readAsStringSync();
+        g = dot.parse(file);
+      } on FileSystemException catch (e) {
+        fail(e.message);
+        return null;
+      }
 
       // Since dagre doesn"t assign dimensions to nodes, we should do that here
       // for each node that doesn"t already have dimensions assigned.
-      g.eachNode((u, a) {
-        if (g.children(u).length) return;
-        if (a.width == undefined) a.width = 100;
-        if (a.height == undefined) a.height = 50;
+      g.eachNode((u, Map a) {
+        if (g.children(u).length != 0) return;
+        if (a['width'] == null) a['width'] = 100;
+        if (a['height'] == null) a['height'] = 50;
       });
 
       group("layout for " + fileName, () {
         test("only includes nodes in the input graph", () {
           var nodes = g.nodes();
-          expect(layout().run(g).nodes(), same(nodes));
+          expect(new Layout().run(g).nodes(), same(nodes));
         });
 
         test("only includes edges in the input graph", () {
           var edges = g.edges();
-          expect(layout().run(g).edges(), same(edges));
+          expect(new Layout().run(g).edges(), same(edges));
         });
 
         test("has the same incident nodes for each edge", () {
@@ -55,17 +64,17 @@ smokeTest() {
           }
 
           var edges = incidentNodes(g);
-          expect(incidentNodes(layout().run(g)), equals(edges));
+          expect(incidentNodes(new Layout().run(g)), equals(edges));
         });
 
         test("has valid control points for each edge", () {
-          layout().run(g).eachEdge((e, u, v, value) {
+          new Layout().run(g).eachEdge((e, u, v, value) {
             expect(value, "points");
             value.points.forEach((p) {
-              expect(p, property("x"));
-              expect(p, property("y"));
-              expect(Number.isNaN(p.x), isFalse);
-              expect(Number.isNaN(p.y), isFalse);
+              expect(p, contains("x"));
+              expect(p, contains("y"));
+              expect(p['x'].isNaN, isFalse);
+              expect(p['y'].isNaN, isFalse);
             });
           });
         });
@@ -76,7 +85,7 @@ smokeTest() {
           // exception for self edges.
 
           var sep = 50;
-          var out = layout().rankSep(sep).run(g);
+          var out = (new Layout()..rankSep = sep).run(g);
 
           getY(u) {
             return (g.graph().rankDir == "LR" || g.graph().rankDir == "RL"
@@ -85,45 +94,44 @@ smokeTest() {
           }
 
           getHeight(u) {
-            return Number(g.graph().rankDir == "LR" || g.graph().rankDir == "RL"
-                              ? out.node(u).width
-                              : out.node(u).height);
+            return (g.graph().rankDir == "LR" || g.graph().rankDir == "RL"
+                              ? out.node(u)['width']
+                              : out.node(u)['height']).toDouble();
           }
 
-          out.eachEdge((e, u, v) {
-              if (u != v && g.node(u).rank != undefined && g.node(u).rank != g.node(v).rank) {
+          out.eachEdge((e, u, v, _) {
+              if (u != v && g.node(u)['rank'] != null && g.node(u)['rank'] != g.node(v)['rank']) {
                 var uY = getY(u),
                     vY = getY(v),
                     uHeight = getHeight(u),
                     vHeight = getHeight(v),
-                    actualSep = Math.abs(vY - uY) - (uHeight + vHeight) / 2;
+                    actualSep = (vY - uY).abs() - (uHeight + vHeight) / 2;
                 expect(actualSep >= sep, isTrue,
-                              reason: "Distance between " + u + " and " + v + " should be " + sep +
-                              " but was " + actualSep);
+                              reason: "Distance between $u and $v should be $sep but was $actualSep");
               }
             });
         });
 
         test("has the origin at (0, 0)", () {
-          var out = layout().run(g);
-          var nodes = out.nodes().filter(util.filterNonSubgraphs(out));
+          BaseGraph out = new Layout().run(g);
+          final nodes = out.nodes().where(util.filterNonSubgraphs(out));
 
-          var xs = nodes.map((u) {
+          final xs = nodes.map((u) {
             var value = out.node(u);
             return value.x - value.width / 2;
           });
-          out.eachEdge((e, u, v, value) {
-            xs = xs.concat(value.points.map((p) {
-              return p.x - value.width / 2;
+          out.eachEdge((e, u, v, Map value) {
+            xs.addAll(value['points'].map((p) {
+              return p.x - value['width'] / 2;
             }));
           });
 
-          var ys = nodes.map((u) {
+          final ys = nodes.map((u) {
             var value = out.node(u);
             return value.y - value.height / 2;
           });
           out.eachEdge((e, u, v, value) {
-            ys = ys.concat(value.points.map((p) {
+            ys.addAll(value.points.map((p) {
               return p.y - value.height / 2;
             }));
           });
@@ -133,11 +141,11 @@ smokeTest() {
         });
 
         test("has valid dimensions", () {
-          var graphValue = layout().run(g).graph();
-          expect(graphValue, property("width"));
-          expect(graphValue, property("height"));
-          expect(Number.isNaN(graphValue.width), isFalse);
-          expect(Number.isNaN(graphValue.height), isFalse);
+          Map graphValue = new Layout().run(g).graph();
+          expect(graphValue, contains("width"));
+          expect(graphValue, contains("height"));
+          expect(graphValue['width'].isNaN, isFalse);
+          expect(graphValue['height'].isNaN, isFalse);
         });
 
         test("has no unnecessary edge slack", () {
@@ -149,7 +157,7 @@ smokeTest() {
           // at least one node in the component was not connected by a tight
           // edge.
 
-          var layoutGraph = layout().run(g);
+          var layoutGraph = new Layout().run(g);
           components(layoutGraph).forEach((cmpt) {
             var subgraph = layoutGraph.filterNodes(nodesFromList(cmpt));
             subgraph.eachEdge((e, u, v, value) {

@@ -21,7 +21,7 @@ sortLayer(g, cg, weights) {
 sortLayerSubgraph(g, sg, cg, weights) {
   cg = cg ? cg.filterNodes(nodesFromList(g.children(sg))) : new Digraph();
 
-  var nodeData = {};
+  final nodeData = {};
   g.children(sg).forEach((u) {
     if (g.children(u).length) {
       nodeData[u] = sortLayerSubgraph(g, u, cg, weights);
@@ -30,18 +30,18 @@ sortLayerSubgraph(g, sg, cg, weights) {
     } else {
       var ws = weights[u];
       nodeData[u] = {
-        degree: ws.length,
-        barycenter: util.sum(ws) / ws.length,
-        order: g.node(u).order,
-        orderCount: 1,
-        list: [u]
+        'degree': ws.length,
+        'barycenter': util.sum(ws) / ws.length,
+        'order': g.node(u).order,
+        'orderCount': 1,
+        'list': [u]
       };
     }
   });
 
   resolveViolatedConstraints(g, cg, nodeData);
 
-  var keys = Object.keys(nodeData);
+  var keys = nodeData.keys;
   keys.sort((x, y) {
     return nodeData[x].barycenter - nodeData[y].barycenter ||
            nodeData[x].order - nodeData[y].order;
@@ -52,43 +52,44 @@ sortLayerSubgraph(g, sg, cg, weights) {
   return result;
 }
 
-mergeNodeData(g, lhs, rhs) {
-  var cg = mergeDigraphs(lhs.constraintGraph, rhs.constraintGraph);
+Map mergeNodeData(BaseGraph g, Map lhs, Map rhs) {
+  var cg = mergeDigraphs(lhs['constraintGraph'], rhs['constraintGraph']);
 
-  if (lhs.lastSG != undefined && rhs.firstSG != undefined) {
-    if (cg == undefined) {
+  if (lhs['lastSG'] != null && rhs['firstSG'] != null) {
+    if (cg == null) {
       cg = new Digraph();
     }
-    if (!cg.hasNode(lhs.lastSG)) { cg.addNode(lhs.lastSG); }
-    cg.addNode(rhs.firstSG);
-    cg.addEdge(null, lhs.lastSG, rhs.firstSG);
+    if (!cg.hasNode(lhs['lastSG'])) { cg.addNode(lhs['lastSG']); }
+    cg.addNode(rhs['firstSG']);
+    cg.addEdge(null, lhs['lastSG'], rhs['firstSG']);
   }
 
   return {
-    degree: lhs.degree + rhs.degree,
-    barycenter: (lhs.barycenter * lhs.degree + rhs.barycenter * rhs.degree) /
-                (lhs.degree + rhs.degree),
-    order: (lhs.order * lhs.orderCount + rhs.order * rhs.orderCount) /
-           (lhs.orderCount + rhs.orderCount),
-    orderCount: lhs.orderCount + rhs.orderCount,
-    list: lhs.list.concat(rhs.list),
-    firstSG: lhs.firstSG != undefined ? lhs.firstSG : rhs.firstSG,
-    lastSG: rhs.lastSG != undefined ? rhs.lastSG : lhs.lastSG,
-    constraintGraph: cg
+    'degree': lhs['degree'] + rhs['degree'],
+    'barycenter': (lhs['barycenter'] * lhs['degree'] + rhs['barycenter'] * rhs['degree']) /
+                (lhs['degree'] + rhs['degree']),
+    'order': (lhs['order'] * lhs['orderCount'] + rhs['order'] * rhs['orderCount']) /
+           (lhs['orderCount'] + rhs['orderCount']),
+    'orderCount': lhs['orderCount'] + rhs['orderCount'],
+    'list': lhs['list'].concat(rhs['list']),
+    'firstSG': lhs['firstSG'] != null ? lhs['firstSG'] : rhs['firstSG'],
+    'lastSG': rhs['lastSG'] != null ? rhs['lastSG'] : lhs['lastSG'],
+    'constraintGraph': cg
   };
 }
 
-mergeDigraphs(lhs, rhs) {
-  if (lhs == undefined) return rhs;
-  if (rhs == undefined) return lhs;
+BaseGraph mergeDigraphs(BaseGraph lhs, BaseGraph rhs) {
+  if (lhs == null) return rhs;
+  if (rhs == null) return lhs;
 
   lhs = lhs.copy();
   rhs.nodes().forEach((u) { lhs.addNode(u); });
-  rhs.edges().forEach((e, u, v) { lhs.addEdge(null, u, v); });
+  //rhs.edges().forEach((e, u, v) { lhs.addEdge(null, u, v); });
+  rhs.eachEdge((e, u, v, _) { lhs.addEdge(null, u, v); });
   return lhs;
 }
 
-resolveViolatedConstraints(g, cg, nodeData) {
+resolveViolatedConstraints(BaseGraph g, Digraph cg, nodeData) {
   // Removes nodes `u` and `v` from `cg` and makes any edges incident on them
   // incident on `w` instead.
   collapseNodes(u, v, w) {
@@ -108,7 +109,7 @@ resolveViolatedConstraints(g, cg, nodeData) {
   }
 
   var violated;
-  while ((violated = findViolatedConstraint(cg, nodeData)) != undefined) {
+  while ((violated = findViolatedConstraint(cg, nodeData)) != null) {
     var source = cg.source(violated),
         target = cg.target(violated);
 
@@ -127,7 +128,7 @@ resolveViolatedConstraints(g, cg, nodeData) {
   }
 }
 
-findViolatedConstraint(cg, nodeData) {
+findViolatedConstraint(Digraph cg, nodeData) {
   var us = topsort(cg);
   for (var i = 0; i < us.length; ++i) {
     var u = us[i];
@@ -144,12 +145,12 @@ findViolatedConstraint(cg, nodeData) {
 // Adjust weights so that they fall in the range of 0..|N|-1. If a node has no
 // weight assigned then set its adjusted weight to its current position. This
 // allows us to better retain the origiinal position of nodes without neighbors.
-adjustWeights(g, weights) {
-  var minW = Number.MAX_VALUE,
+adjustWeights(BaseGraph g, weights) {
+  var minW = double.MAX_FINITE,
       maxW = 0,
       adjusted = {};
-  g.eachNode((u) {
-    if (g.children(u).length) return;
+  g.eachNode((u, _) {
+    if (g.children(u).length != 0) return;
 
     var ws = weights[u];
     if (ws.length) {
@@ -159,8 +160,8 @@ adjustWeights(g, weights) {
   });
 
   var rangeW = (maxW - minW);
-  g.eachNode((u) {
-    if (g.children(u).length) return;
+  g.eachNode((u, _) {
+    if (g.children(u).length != 0) return;
 
     var ws = weights[u];
     if (!ws.length) {

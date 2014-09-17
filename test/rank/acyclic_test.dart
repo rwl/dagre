@@ -1,11 +1,5 @@
 part of dagre.rank.test;
 
-//var assert = require("../chai").assert,
-//    dot = require("graphlib-dot"),
-//    acyclic = require("../../lib/rank/acyclic"),
-//    isAcyclic = require("graphlib").alg.isAcyclic,
-//    findCycles = require("graphlib").alg.findCycles;
-
 acyclicTest() {
   group("acyclic", () {
     test("does not change acyclic graphs", () {
@@ -21,13 +15,13 @@ acyclicTest() {
       expect(isAcyclic(g), isFalse);
       acyclic(g);
       expect(g.nodes().sort(), equals(["A", "B"]));
-      expect(g.source("AB"), not(equals(g.target("AB"))));
+      expect(g.source("AB"), isNot(equals(g.target("AB"))));
       expect(g.target("AB"), equals(g.target("BA")));
       expect(g.source("AB"), equals(g.source("BA")));
       assertAcyclic(g);
     });
 
-    test("warns if there are self loops", () {
+    /*test("warns if there are self loops", () {
       var g = dot.parse("digraph { A -> A [id=AA]; }");
 
       // Disable console.error since we"re intentionally triggering it
@@ -41,13 +35,13 @@ acyclicTest() {
       } finally {
         console.error = oldError;
       }
-    });
+    });*/
 
     test("is a reversible process", () {
       var g = dot.parse("digraph { A -> B [id=AB]; B -> A [id=BA] }");
       g.graph({});
       acyclic(g);
-      acyclic.undo(g);
+      undo(g);
       expect(g.nodes().sort(), equals(["A", "B"]));
       expect(g.source("AB"), equals("A"));
       expect(g.target("AB"), equals("B"));

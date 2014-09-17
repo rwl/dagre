@@ -84,7 +84,7 @@ class Layout {
    * After the adjacency graph is constructed the code no longer needs to use
    * the original nodes and edges passed in via config.
    */
-  initLayoutGraph(BaseGraph inputGraph) {
+  CDigraph initLayoutGraph(BaseGraph inputGraph) {
     final g = new CDigraph();
 
     inputGraph.eachNode((u, value) {
@@ -128,9 +128,9 @@ class Layout {
     return g;
   }
 
-  run(inputGraph) {
+  BaseGraph run(inputGraph) {
     var rankSep = this.rankSep;
-    var g;
+    CDigraph g;
     try {
       // Build internal graph
       g = util.time("initLayoutGraph", () => initLayoutGraph(inputGraph));
@@ -147,7 +147,7 @@ class Layout {
 
       // Determine the rank for each node. Nodes with a lower rank will appear
       // above nodes of higher rank.
-      util.time("rank.run", () => rank.run(g, this.rankSimplex));
+      util.time("rank.run", () => runRank(g, this.rankSimplex));
 
       // Normalize the graph by ensuring that every edge is proper (each edge has
       // a length of 1). We achieve this by adding dummy nodes to long edges,
@@ -169,7 +169,7 @@ class Layout {
 
       // Restore delete edges and reverse edges that were reversed in the rank
       // phase.
-      util.time("rank.restoreEdges", () => rank.restoreEdges(g));
+      util.time("rank.restoreEdges", () => restoreEdges(g));
 
       // Construct final result graph and return it
       return util.time("createFinalGraph", () => createFinalGraph(g, inputGraph.isDirected()));
@@ -250,7 +250,7 @@ class Layout {
     g.eachEdge((e, s, t, a) { if (a.reversed) a.points.reverse(); });
   }
 
-  createFinalGraph(BaseGraph g, isDirected) {
+  BaseGraph createFinalGraph(BaseGraph g, isDirected) {
     var out = isDirected ? new CDigraph() : new CGraph();
     out.graph(g.graph());
     g.eachNode((u, value) { out.addNode(u, value); });

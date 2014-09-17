@@ -18,7 +18,7 @@ constraintsTest() {
     group("apply", () {
       test("does not change unconstrained nodes", () {
         g.addNode(1, {});
-        constraints.apply(g);
+        constraints.applyConstraints(g);
         expect(g.nodes(), equals([1]));
       });
 
@@ -30,7 +30,7 @@ constraintsTest() {
         g.addEdge("A", 1, 2, { 'minLen': 2 });
         g.addEdge("B", 3, 4, { 'minLen': 4 });
 
-        constraints.apply(g);
+        constraints.applyConstraints(g);
         expect(g.nodes().length, equals(3));
         expect(g.nodes(), anyElement(isIn([1, 4])));
 
@@ -58,7 +58,7 @@ constraintsTest() {
         g.addEdge("A", 1, 2, { 'minLen': 2 });
         g.addEdge("B", 3, 4, { 'minLen': 4 });
 
-        constraints.apply(g);
+        constraints.applyConstraints(g);
         expect(g.nodes().length, equals(3));
         expect(g.nodes(), anyElement(isIn([1, 4])));
 
@@ -86,7 +86,7 @@ constraintsTest() {
         g.addEdge("A", 1, 2, { 'minLen': 2 });
         g.addEdge("B", 3, 4, { 'minLen': 4 });
 
-        constraints.apply(g);
+        constraints.applyConstraints(g);
         expect(g.nodes().length, equals(3));
         expect(g.nodes(), anyElement(isIn([1, 4])));
 
@@ -137,7 +137,7 @@ constraintsTest() {
         g.parent(g.addNode(6, { 'prefRank': "min" }), "sg2");
         g.addEdge("B", 4, 5, { 'minLen': 1 });
 
-        constraints.apply(g);
+        constraints.applyConstraints(g);
         expect(g.nodes().length, equals(6)); // 2 SGs + 2 nodes / SG
         expect(g.nodes(), anyElement(isIn([1, 4])));
 
@@ -156,7 +156,7 @@ constraintsTest() {
         g.addEdge("A", 1, 2, { 'minLen': 2 });
         g.addEdge("B", 3, 4, { 'minLen': 4 });
 
-        constraints.apply(g);
+        constraints.applyConstraints(g);
 
         var x = g.nodes().where((u) { return u != 1 && u != 4; }).first;
         g.node(1)['rank'] = 0;
@@ -181,7 +181,7 @@ constraintsTest() {
         g.addEdge("A", 1, 2, { 'minLen': 1 });
         g.addEdge("B", 2, 1, { 'minLen': 1 });
 
-        constraints.apply(g);
+        constraints.applyConstraints(g);
 
         expect(g.nodes().length, equals(2));
         g.node(g.nodes()[0])['rank'] = 0;
@@ -210,7 +210,7 @@ constraintsTest() {
         g.parent(g.addNode(6, { 'prefRank': "min" }), "sg2");
         g.addEdge("B", 4, 5, { 'minLen': 1 });
 
-        constraints.apply(g);
+        constraints.applyConstraints(g);
 
         g.node(1)['rank'] = 0;
         g.node(g.children("sg1").where((u) { return u != 1; }).first)['rank'] = 2;

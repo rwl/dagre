@@ -1,10 +1,10 @@
-library dagre.rank;
+part of dagre;
 
-import 'package:graphlib/graphlib.dart' show BaseGraph, components, nodesFromList;
-
-import 'util.dart' as util;
-import 'rank/constraints.dart' as constraints;
-import 'rank/rank.dart';
+//import 'package:graphlib/graphlib.dart' show BaseGraph, components, nodesFromList;
+//
+//import 'util.dart' as util;
+//import 'rank/constraints.dart' as constraints;
+//import 'rank/rank.dart';
 
 //"use strict";
 //
@@ -29,24 +29,24 @@ import 'rank/rank.dart';
  *
  *  * Each edge in the input graph must have an assigned "minLen" attribute
  */
-run(BaseGraph g, useSimplex) {
+runRank(BaseGraph g, useSimplex) {
   expandSelfLoops(g);
 
   // If there are rank constraints on nodes, then build a new graph that
   // encodes the constraints.
-  util.time("constraints.apply", () => constraints.apply(g));
+  util.time("constraints.apply", () => rank.applyConstraints(g));
 
   expandSidewaysEdges(g);
 
   // Reverse edges to get an acyclic graph, we keep the graph in an acyclic
   // state until the very end.
-  util.time("acyclic", () => acyclic(g));
+  util.time("acyclic", () => rank.acyclic(g));
 
   // Convert the graph into a flat graph for ranking
   var flatGraph = g.filterNodes(util.filterNonSubgraphs(g));
 
   // Assign an initial ranking using DFS.
-  initRank(flatGraph);
+  rank.initRank(flatGraph);
 
   // For each component improve the assigned ranks.
   components(flatGraph).forEach((cmpt) {
@@ -55,7 +55,7 @@ run(BaseGraph g, useSimplex) {
   });
 
   // Relax original constraints
-  util.time("constraints.relax", () => constraints.relax(g));
+  util.time("constraints.relax", () => rank.relax(g));
 
   // When handling nodes with constrained ranks it is possible to end up with
   // edges that point to previous ranks. Most of the subsequent algorithms assume
@@ -66,7 +66,7 @@ run(BaseGraph g, useSimplex) {
 }
 
 restoreEdges(g) {
-  undo(g);
+  rank.undo(g);
 }
 
 /**
@@ -130,12 +130,12 @@ reorientEdges(BaseGraph g) {
   });
 }
 
-rankComponent(subgraph, useSimplex) {
-  var spanningTree = feasibleTree(subgraph);
+rankComponent(subgraph, bool useSimplex) {
+  var spanningTree = rank.feasibleTree(subgraph);
 
   if (useSimplex) {
     util.log(1, "Using network simplex for ranking");
-    simplex(subgraph, spanningTree);
+    rank.simplex(subgraph, spanningTree);
   }
   normalize(subgraph);
 }

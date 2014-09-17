@@ -6,7 +6,7 @@ part of dagre.order;
  * arranges each node of each rank. If no constraint graph is provided the
  * order of the nodes in each rank is entirely arbitrary.
  */
-initOrder(BaseGraph g, bool random) {
+initOrder(BaseGraph g, [bool random=false]) {
   var layers = [];
 
   g.eachNode((u, Map value) {

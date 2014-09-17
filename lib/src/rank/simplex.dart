@@ -1,12 +1,6 @@
 part of dagre.rank;
-//"use strict";
-//
-//var util = require("../util"),
-//    rankUtil = require("./rankUtil");
-//
-//module.exports = simplex;
 
-simplex(graph, spanningTree) {
+simplex(BaseGraph graph, spanningTree) {
   // The network simplex algorithm repeatedly replaces edges of
   // the spanning tree with negative cut values until no such
   // edge exists.
@@ -19,14 +13,14 @@ simplex(graph, spanningTree) {
   }
 }
 
-/*
+/**
  * Set the cut values of edges in the spanning tree by a depth-first
  * postorder traversal.  The cut value corresponds to the cost, in
  * terms of a ranking"s edge length sum, of lengthening an edge.
  * Negative cut values typically indicate edges that would yield a
  * smaller edge length sum if they were lengthened.
  */
-initCutValues(graph, spanningTree) {
+initCutValues(BaseGraph graph, spanningTree) {
   computeLowLim(spanningTree);
 
   spanningTree.eachEdge((id, u, v, treeValue) {
@@ -47,7 +41,7 @@ initCutValues(graph, spanningTree) {
   dfs(spanningTree.graph().root);
 }
 
-/*
+/**
  * Perform a DFS postorder traversal, labeling each node v with
  * its traversal order "lim(v)" and the minimum traversal number
  * of any of its descendants "low(v)".  This provides an efficient
@@ -55,7 +49,7 @@ initCutValues(graph, spanningTree) {
  * low(u) <= lim(v) <= lim(u) if and only if u is an ancestor.
  */
 computeLowLim(tree) {
-  var postOrderNum = 0;
+  int postOrderNum = 0;
 
   dfs(n) {
     var children = tree.successors(n);
@@ -72,7 +66,7 @@ computeLowLim(tree) {
   dfs(tree.graph().root);
 }
 
-/*
+/**
  * To compute the cut value of the edge parent -> child, we consider
  * it and any other graph edges to or from the child.
  *          parent
@@ -81,23 +75,23 @@ computeLowLim(tree) {
  *          /      \
  *         u        v
  */
-setCutValue(graph, tree, child) {
+setCutValue(Digraph graph, tree, child) {
   var parentEdge = tree.inEdges(child)[0];
 
   // List of child"s children in the spanning tree.
-  var grandchildren = [];
+  final grandchildren = [];
   var grandchildEdges = tree.outEdges(child);
   for (var gce in grandchildEdges) {
-    grandchildren.push(tree.target(grandchildEdges[gce]));
+    grandchildren.add(tree.target(grandchildEdges[gce]));
   }
 
-  var cutValue = 0;
+  int cutValue = 0;
 
   // TODO: Replace unit increment/decrement with edge weights.
-  var E = 0;    // Edges from child to grandchild"s subtree.
-  var F = 0;    // Edges to child from grandchild"s subtree.
-  var G = 0;    // Edges from child to nodes outside of child"s subtree.
-  var H = 0;    // Edges from nodes outside of child"s subtree to child.
+  int E = 0;    // Edges from child to grandchild"s subtree.
+  int F = 0;    // Edges to child from grandchild"s subtree.
+  int G = 0;    // Edges from child to nodes outside of child"s subtree.
+  int H = 0;    // Edges from nodes outside of child"s subtree to child.
 
   // Consider all graph edges from child.
   var outEdges = graph.outEdges(child);
@@ -130,7 +124,7 @@ setCutValue(graph, tree, child) {
 
   // Contributions depend on the alignment of the parent -> child edge
   // and the child -> u or v edges.
-  var grandchildCutSum = 0;
+  int grandchildCutSum = 0;
   for (gc in grandchildren) {
     var cv = tree.edge(grandchildEdges[gc]).cutValue;
     if (!tree.edge(grandchildEdges[gc]).reversed) {
@@ -149,7 +143,7 @@ setCutValue(graph, tree, child) {
   tree.edge(parentEdge).cutValue = cutValue;
 }
 
-/*
+/**
  * Return whether n is a node in the subtree with the given
  * root.
  */
@@ -158,7 +152,7 @@ inSubtree(tree, n, root) {
           tree.node(n).lim <= tree.node(root).lim);
 }
 
-/*
+/**
  * Return an edge from the tree with a negative cut value, or null if there
  * is none.
  */
@@ -174,14 +168,14 @@ leaveEdge(tree) {
   return null;
 }
 
-/*
+/**
  * The edge e should be an edge in the tree, with an underlying edge
  * in the graph, with a negative cut value.  Of the two nodes incident
  * on the edge, take the lower one.  enterEdge returns an edge with
  * minimum slack going from outside of that node"s subtree to inside
  * of that node"s subtree.
  */
-enterEdge(graph, tree, e) {
+enterEdge(BaseGraph graph, tree, e) {
   var source = tree.source(e);
   var target = tree.target(e);
   var lower = tree.node(target).lim < tree.node(source).lim ? target : source;
@@ -189,8 +183,8 @@ enterEdge(graph, tree, e) {
   // Is the tree edge aligned with the graph edge?
   var aligned = !tree.edge(e).reversed;
 
-  var minSlack = Number.POSITIVE_INFINITY;
-  var minSlackEdge;
+  var minSlack = double.INFINITY;
+  var minSlackEdge = null;
   if (aligned) {
     graph.eachEdge((id, u, v, value) {
       if (id != e && inSubtree(tree, u, lower) && !inSubtree(tree, v, lower)) {
@@ -213,27 +207,27 @@ enterEdge(graph, tree, e) {
     });
   }
 
-  if (minSlackEdge == undefined) {
+  if (minSlackEdge == null) {
     var outside = [];
     var inside = [];
-    graph.eachNode((id) {
+    graph.eachNode((id, _) {
       if (!inSubtree(tree, id, lower)) {
-        outside.push(id);
+        outside.add(id);
       } else {
-        inside.push(id);
+        inside.add(id);
       }
     });
-    throw new Error("No edge found from outside of tree to inside");
+    throw new Exception("No edge found from outside of tree to inside");
   }
 
   return minSlackEdge;
 }
 
-/*
+/**
  * Replace edge e with edge f in the tree, recalculating the tree root,
  * the nodes" low and lim properties and the edges" cut values.
  */
-exchange(graph, tree, e, f) {
+exchange(Digraph graph, tree, e, f) {
   tree.delEdge(e);
   var source = graph.source(f);
   var target = graph.target(f);
@@ -263,20 +257,20 @@ exchange(graph, tree, e, f) {
 
   tree.graph().root = root;
 
-  tree.addEdge(null, source, target, {cutValue: 0});
+  tree.addEdge(null, source, target, {'cutValue': 0});
 
   initCutValues(graph, tree);
 
   adjustRanks(graph, tree);
 }
 
-/*
+/**
  * Reset the ranks of all nodes based on the current spanning tree.
  * The rank of the tree"s root remains unchanged, while all other
  * nodes are set to the sum of minimum length constraints along
  * the path from the root.
  */
-adjustRanks(graph, tree) {
+adjustRanks(BaseGraph graph, tree) {
   dfs(p) {
     var children = tree.successors(p);
     children.forEach((c) {
@@ -289,12 +283,12 @@ adjustRanks(graph, tree) {
   dfs(tree.graph().root);
 }
 
-/*
+/**
  * If u and v are connected by some edges in the graph, return the
  * minimum length of those edges, as a positive number if v succeeds
  * u and as a negative number if v precedes u.
  */
-minimumLength(graph, u, v) {
+minimumLength(Digraph graph, u, v) {
   var outEdges = graph.outEdges(u, v);
   if (outEdges.length > 0) {
     return util.max(outEdges.map((e) {

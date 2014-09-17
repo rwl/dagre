@@ -1,8 +1,4 @@
-import 'package:unittest/unittest.dart';
-
-//var assert = require("../chai").assert,
-//    CDigraph = require("graphlib").CDigraph,
-//    initLayerGraphs = require("../../lib/order/initLayerGraphs");
+part of dagre.order.test;
 
 initLayerGraphsTest() {
   group("initLayerGraphs", () {
@@ -14,9 +10,9 @@ initLayerGraphsTest() {
     });
 
     test("constructs a 1-level graph for a flat graph", () {
-      g.addNode(1, { rank: 0 });
-      g.addNode(2, { rank: 0 });
-      g.addNode(3, { rank: 0 });
+      g.addNode(1, { 'rank': 0 });
+      g.addNode(2, { 'rank': 0 });
+      g.addNode(3, { 'rank': 0 });
 
       var layerGraphs = initLayerGraphs(g);
 
@@ -27,9 +23,9 @@ initLayerGraphsTest() {
     });
 
     test("constructs a 2-level graph for a single layer", () {
-      g.addNode(1, { rank: 0 });
-      g.addNode(2, { rank: 0 });
-      g.addNode(3, { rank: 0 });
+      g.addNode(1, { 'rank': 0 });
+      g.addNode(2, { 'rank': 0 });
+      g.addNode(3, { 'rank': 0 });
       g.addNode("sg1", {});
       g.parent(2, "sg1");
 
@@ -43,11 +39,11 @@ initLayerGraphsTest() {
     });
 
     test("constructs 2 layers for a 2-layer graph", () {
-      g.addNode(1, { rank: 0 });
-      g.addNode(2, { rank: 0 });
-      g.addNode(3, { rank: 0 });
-      g.addNode(4, { rank: 1 });
-      g.addNode(5, { rank: 1 });
+      g.addNode(1, { 'rank': 0 });
+      g.addNode(2, { 'rank': 0 });
+      g.addNode(3, { 'rank': 0 });
+      g.addNode(4, { 'rank': 1 });
+      g.addNode(5, { 'rank': 1 });
       g.addNode("sg1", {});
       g.parent(2, "sg1");
       g.parent(5, "sg1");
@@ -67,12 +63,12 @@ initLayerGraphsTest() {
     });
 
     test("handles multiple nestings", () {
-      g.addNode(1, { rank: 0 });
-      g.addNode(2, { rank: 0 });
-      g.addNode(3, { rank: 0 });
-      g.addNode(4, { rank: 1 });
-      g.addNode(5, { rank: 1 });
-      g.addNode(6, { rank: 1 });
+      g.addNode(1, { 'rank': 0 });
+      g.addNode(2, { 'rank': 0 });
+      g.addNode(3, { 'rank': 0 });
+      g.addNode(4, { 'rank': 1 });
+      g.addNode(5, { 'rank': 1 });
+      g.addNode(6, { 'rank': 1 });
       g.addNode("sg1", {});
       g.addNode("sg2", {});
       g.parent(1, "sg2");
@@ -101,11 +97,11 @@ initLayerGraphsTest() {
       // In this example sg1 is the parent of nodes 2 and 5, which are on ranks
       // 0 and 2 respectively. sg1 should not be included in rank 1 where it has
       // no nodes.
-      g.addNode(1, { rank: 0 });
-      g.addNode(2, { rank: 0 });
-      g.addNode(3, { rank: 1 });
-      g.addNode(4, { rank: 2 });
-      g.addNode(5, { rank: 2 });
+      g.addNode(1, { 'rank': 0 });
+      g.addNode(2, { 'rank': 0 });
+      g.addNode(3, { 'rank': 1 });
+      g.addNode(4, { 'rank': 2 });
+      g.addNode(5, { 'rank': 2 });
       g.addNode("sg1", {});
       g.parent(2, "sg1");
       g.parent(5, "sg1");

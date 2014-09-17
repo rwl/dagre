@@ -1,12 +1,8 @@
 part of dagre.rank.test;
 
-//var assert = require("../chai").assert,
-//    Digraph = require("graphlib").Digraph,
-//    buildWeightGraph = require("../../lib/rank/buildWeightGraph");
-
 buildWeightGraphTest() {
   group("buildWeightGraph", () {
-    var g;
+    Digraph g;
 
     setUp(() {
       g = new Digraph();
@@ -33,17 +29,17 @@ buildWeightGraphTest() {
 
       var result = buildWeightGraph(g);
       expect(result.edges().length, equals(1));
-      expect(result.edge(result.edges()[0]).weight, equals(1));
+      expect(result.edge(result.edges().first)['weight'], equals(1));
     });
 
     test("returns a weight of -1 for a single back edge", () {
       g.addNode(1);
       g.addNode(2);
-      g.addEdge(null, 1, 2, { reversed: true });
+      g.addEdge(null, 1, 2, { 'reversed': true });
 
       var result = buildWeightGraph(g);
       expect(result.edges().length, equals(1));
-      expect(result.edge(result.edges()[0]).weight, equals(-1));
+      expect(result.edge(result.edges().first)['weight'], equals(-1));
     });
 
     test("returns a weight of n for an n count forward multi-edge", () {
@@ -57,7 +53,7 @@ buildWeightGraphTest() {
 
       var result = buildWeightGraph(g);
       expect(result.edges().length, equals(1));
-      expect(result.edge(result.edges()[0]).weight, equals(n));
+      expect(result.edge(result.edges().first)['weight'], equals(n));
     });
 
     test("returns a weight of -n for an n count back multi-edge", () {
@@ -66,35 +62,35 @@ buildWeightGraphTest() {
 
       var n = 3;
       for (var i = 0; i < 3; ++i) {
-        g.addEdge(null, 1, 2, { reversed: true });
+        g.addEdge(null, 1, 2, { 'reversed': true });
       }
 
       var result = buildWeightGraph(g);
       expect(result.edges().length, equals(1));
-      expect(result.edge(result.edges()[0]).weight, equals(-n));
+      expect(result.edge(result.edges().first)['weight'], equals(-n));
     });
 
     test("sets the minLen to the max minLen of edges in the original graph", () {
       g.addNode(1);
       g.addNode(2);
-      g.addEdge(null, 1, 2, { minLen: 1 });
-      g.addEdge(null, 1, 2, { minLen: 2 });
-      g.addEdge(null, 1, 2, { minLen: 5 });
+      g.addEdge(null, 1, 2, { 'minLen': 1 });
+      g.addEdge(null, 1, 2, { 'minLen': 2 });
+      g.addEdge(null, 1, 2, { 'minLen': 5 });
 
       var result = buildWeightGraph(g);
       expect(result.edges().length, equals(1));
-      expect(result.edge(result.edges()[0]).minLen, equals(5));
+      expect(result.edge(result.edges().first)['minLen'], equals(5));
     });
 
     test("sets the minLen to a negative value if the edge is reversed", () {
       g.addNode(1);
       g.addNode(2);
-      g.addEdge(null, 1, 2, { minLen: 1, reversed: true });
-      g.addEdge(null, 1, 2, { minLen: 3, reversed: true });
+      g.addEdge(null, 1, 2, { 'minLen': 1, 'reversed': true });
+      g.addEdge(null, 1, 2, { 'minLen': 3, 'reversed': true });
 
       var result = buildWeightGraph(g);
       expect(result.edges().length, equals(1));
-      expect(result.edge(result.edges()[0]).minLen, equals(-3));
+      expect(result.edge(result.edges().first)['minLen'], equals(-3));
     });
 
     test("handles multiple edges across nodes", () {
@@ -102,9 +98,9 @@ buildWeightGraphTest() {
       g.addNode(2);
       g.addNode(3);
 
-      g.addEdge(null, 1, 2, { minLen: 2, reversed: true });
-      g.addEdge(null, 1, 3, { minLen: 4 });
-      g.addEdge(null, 1, 3, { minLen: 6 });
+      g.addEdge(null, 1, 2, { 'minLen': 2, 'reversed': true });
+      g.addEdge(null, 1, 3, { 'minLen': 4 });
+      g.addEdge(null, 1, 3, { 'minLen': 6 });
 
       var result = buildWeightGraph(g);
       expect(result.edges().length, equals(2));
@@ -119,10 +115,10 @@ buildWeightGraphTest() {
         e13 = result.edges()[0];
       }
 
-      expect(result.edge(e12).weight, equals(-1));
-      expect(result.edge(e13).weight, equals(2));
-      expect(result.edge(e12).minLen, equals(-2));
-      expect(result.edge(e13).minLen, equals(6));
+      expect(result.edge(e12)['weight'], equals(-1));
+      expect(result.edge(e13)['weight'], equals(2));
+      expect(result.edge(e12)['minLen'], equals(-2));
+      expect(result.edge(e13)['minLen'], equals(6));
     });
   });
 }

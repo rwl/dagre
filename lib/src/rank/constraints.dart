@@ -1,8 +1,6 @@
-library dagre.rank.constraints;
+part of dagre.rank;
 
-import 'package:graphlib/graphlib.dart';
-
-apply(Digraph g) {
+applyConstraints(Digraph g) {
   dfs(sg) {
     var rankSets = {};
     g.children(sg).forEach((u) {

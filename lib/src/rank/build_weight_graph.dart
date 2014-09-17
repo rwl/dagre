@@ -1,11 +1,6 @@
 part of dagre.rank;
-//"use strict";
-//
-//var Digraph = require("graphlib").Digraph;
-//
-//module.exports = buildWeightGraph;
 
-/*
+/**
  * This function takes a directed acyclic multi-graph and produces a
  * simple directed graph. Nodes are simply copied from the input graph to the
  * output graph.Edges are collapsed and assigned `weight` and `minLen`
@@ -24,26 +19,26 @@ part of dagre.rank;
  * graph is reversed then `minLen` will be a negative value (or 0 in the case
  * of a sideways edge).
  */
-buildWeightGraph(g) {
+Digraph buildWeightGraph(BaseGraph g) {
   var result = new Digraph();
   g.eachNode((u, value) { result.addNode(u, value); });
-  g.eachEdge((e, u, v, value) {
-    var id = incidenceId(u, v);
+  g.eachEdge((e, u, v, Map value) {
+    final id = incidenceId(u, v);
     if (!result.hasEdge(id)) {
-      result.addEdge(id, u, v, { weight: 0, minLen: 0 });
+      result.addEdge(id, u, v, { 'weight': 0, 'minLen': 0 });
     }
-    var resultEdge = result.edge(id);
-    resultEdge.weight += (value.reversed ? -1 : 1);
-    resultEdge.minLen = (value.reversed ? -1 : 1) *
-                            Math.max(Math.abs(resultEdge.minLen), Math.abs(value.minLen));
+    Map resultEdge = result.edge(id);
+    resultEdge['weight'] += (value['reversed'] ? -1 : 1);
+    resultEdge['minLen'] = (value['reversed'] ? -1 : 1) *
+                            Math.max(resultEdge['minLen'].abs(), value['minLen'].abs());
   });
   return result;
 }
 
-/*
+/**
  * This id can be used to group (in an undirected manner) multi-edges
  * incident on the same two nodes.
  */
-incidenceId(u, v) {
-  return u < v ?  u.length + ":" + u + "-" + v : v.length + ":" + v + "-" + u;
+String incidenceId(u, v) {
+  return u < v ?  "${u.length}:$u-$v" : "${v.length}:$v-$u";
 }

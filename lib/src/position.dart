@@ -46,13 +46,16 @@ class Position {
   run(BaseGraph g) {
     g = g.filterNodes(util.filterNonSubgraphs(g));
 
-    var layering = util.ordering(g);
+    List layering = util.ordering(g);
 
     var conflicts = findConflicts(g, layering);
 
     var xss = {};
     ["u", "d"].forEach((vertDir) {
-      if (vertDir == "d") layering.reverse();
+      if (vertDir == "d") {
+        //layering.reverse();
+        layering = layering.reversed;
+      }
 
       ["l", "r"].forEach((horizDir) {
         if (horizDir == "r") reverseInnerOrder(layering);
@@ -71,7 +74,10 @@ class Position {
         if (horizDir == "r") reverseInnerOrder(layering);
       });
 
-      if (vertDir == "d") layering.reverse();
+      if (vertDir == "d") {
+        //layering.reverse();
+        layering = layering.reversed;
+      }
     });
 
     balance(g, layering, xss);
@@ -265,7 +271,7 @@ class Position {
     }
 
     // Root coordinates relative to sink
-    util.values(root).forEach((v) {
+    root.values.forEach((v) {
       placeBlock(v);
     });
 
