@@ -45,7 +45,7 @@ feasibleTree(g) {
   addTightEdges(v) {
     var continueToScan = true;
     g.predecessors(v).forEach((u) {
-      if (remaining.contains(u) && !slack(g, u, v)) {
+      if (remaining.contains(u) && slack(g, u, v) == 0) {
         if (remaining.contains(v)) {
           tree.addNode(v, {});
           remaining.remove(v);
@@ -61,7 +61,7 @@ feasibleTree(g) {
     });
 
     g.successors(v).forEach((w)  {
-      if (remaining.contains(w) && !slack(g, v, w)) {
+      if (remaining.contains(w) && slack(g, v, w) == 0) {
         if (remaining.contains(v)) {
           tree.addNode(v, {});
           remaining.remove(v);
@@ -100,11 +100,11 @@ feasibleTree(g) {
       });
     });
 
-    tree.eachNode((u, _) { g.node(u).rank -= minSlack; });
+    tree.eachNode((u, _) { g.node(u)['rank'] -= minSlack; });
   }
 
   while (remaining.length != 0) {
-    var nodesToSearch = !tree.order() ? remaining.toList() : tree.nodes();
+    var nodesToSearch = tree.order() == 0 ? remaining.toList() : tree.nodes();
     for (var i = 0, il = nodesToSearch.length;
          i < il && addTightEdges(nodesToSearch[i]);
          ++i);
@@ -117,8 +117,8 @@ feasibleTree(g) {
 }
 
 slack(g, u, v) {
-  var rankDiff = g.node(v).rank - g.node(u).rank;
+  var rankDiff = g.node(v)['rank'] - g.node(u)['rank'];
   var maxMinLen = util.max(g.outEdges(u, v)
-                            .map((e) { return g.edge(e).minLen; }));
+                            .map((e) { return g.edge(e)['minLen']; }));
   return rankDiff - maxMinLen;
 }

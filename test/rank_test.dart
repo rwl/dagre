@@ -28,7 +28,7 @@ rankTest() {
 
         runRank(g, true);
 
-        expect(g.node("mover").rank, equals(2));
+        expect(g.node("mover")['rank'], equals(2));
       });
     });
   });
@@ -40,7 +40,7 @@ rankTests(withSimplex) {
 
     runRank(g, withSimplex);
 
-    expect(g.node("A").rank, equals(0));
+    expect(g.node("A")['rank'], equals(0));
   });
 
   test("assigns successive ranks to succesors", () {
@@ -48,8 +48,8 @@ rankTests(withSimplex) {
 
     runRank(g, withSimplex);
 
-    expect(g.node("A").rank, equals(0));
-    expect(g.node("B").rank, equals(1));
+    expect(g.node("A")['rank'], equals(0));
+    expect(g.node("B")['rank'], equals(1));
   });
 
   test("assigns the minimum rank that satisfies all in-edges", () {
@@ -59,9 +59,9 @@ rankTests(withSimplex) {
 
     runRank(g, withSimplex);
 
-    expect(g.node("A").rank, equals(0));
-    expect(g.node("B").rank, equals(1));
-    expect(g.node("C").rank, equals(2));
+    expect(g.node("A")['rank'], equals(0));
+    expect(g.node("B")['rank'], equals(1));
+    expect(g.node("C")['rank'], equals(2));
   });
 
   test("uses an edge\"s minLen attribute to determine rank", () {
@@ -69,8 +69,8 @@ rankTests(withSimplex) {
 
     runRank(g, withSimplex);
 
-    expect(g.node("A").rank, equals(0));
-    expect(g.node("B").rank, equals(2));
+    expect(g.node("A")['rank'], equals(0));
+    expect(g.node("B")['rank'], equals(2));
   });
 
   test("does not assign a rank to a subgraph node", () {
@@ -78,7 +78,7 @@ rankTests(withSimplex) {
 
     runRank(g, withSimplex);
 
-    expect(g.node("A").rank, equals(0));
+    expect(g.node("A")['rank'], equals(0));
     expect(g.node("sg1"), isNot(contains("rank")));
   });
 
@@ -87,8 +87,8 @@ rankTests(withSimplex) {
 
     runRank(g, withSimplex);
 
-    expect(g.node("B").rank < g.node("A").rank, isTrue, reason: "rank of B not less than rank of A");
-    expect(g.node("B").rank < g.node("C").rank, isTrue, reason: "rank of B not less than rank of C");
+    expect(g.node("B")['rank'] < g.node("A")['rank'], isTrue, reason: "rank of B not less than rank of A");
+    expect(g.node("B")['rank'] < g.node("C")['rank'], isTrue, reason: "rank of B not less than rank of C");
   });
 
   test("ranks an unconnected \"min\" node at the level of source nodes", () {
@@ -96,17 +96,17 @@ rankTests(withSimplex) {
 
     runRank(g, withSimplex);
 
-    expect(g.node("B").rank, equals(g.node("A").rank));
-    expect(g.node("B").rank < g.node("C").rank, isTrue, reason: "rank of B not less than rank of C");
+    expect(g.node("B")['rank'], equals(g.node("A")['rank']));
+    expect(g.node("B")['rank'] < g.node("C")['rank'], isTrue, reason: "rank of B not less than rank of C");
   });
 
   test("ensures that minLen is respected for nodes added to the min rank", () {
     var minLen = 2;
-    var g = parse("digraph { B [prefRank=min]; A -> B [minLen=" + minLen + "] }");
+    var g = parse("digraph { B [prefRank=min]; A -> B [minLen=$minLen] }");
 
     runRank(g, withSimplex);
 
-    expect(g.node("A").rank - minLen >= g.node("B").rank, isTrue);
+    expect(g.node("A")['rank'] - minLen >= g.node("B")['rank'], isTrue);
   });
 
   test("ranks the \"max\" node before any adjacent nodes", () {
@@ -114,8 +114,8 @@ rankTests(withSimplex) {
 
     runRank(g, withSimplex);
 
-    expect(g.node("B").rank > g.node("A").rank, isTrue, reason: "rank of B not greater than rank of A");
-    expect(g.node("B").rank > g.node("C").rank, isTrue, reason: "rank of B not greater than rank of C");
+    expect(g.node("B")['rank'] > g.node("A")['rank'], isTrue, reason: "rank of B not greater than rank of A");
+    expect(g.node("B")['rank'] > g.node("C")['rank'], isTrue, reason: "rank of B not greater than rank of C");
   });
 
   test("ranks an unconnected \"max\" node at the level of sinks nodes", () {
@@ -123,28 +123,28 @@ rankTests(withSimplex) {
 
     runRank(g, withSimplex);
 
-    expect(g.node("B").rank > g.node("A").rank, isTrue, reason: "rank of B not greater than rank of A");
-    expect(g.node("B").rank, equals(g.node("C").rank));
+    expect(g.node("B")['rank'] > g.node("A")['rank'], isTrue, reason: "rank of B not greater than rank of A");
+    expect(g.node("B")['rank'], equals(g.node("C")['rank']));
   });
 
   test("ensures that minLen is respected for nodes added to the max rank", () {
     var minLen = 2;
-    var g = parse("digraph { A [prefRank=max]; A -> B [minLen=" + minLen + "] }");
+    var g = parse("digraph { A [prefRank=max]; A -> B [minLen=$minLen] }");
 
     runRank(g, withSimplex);
 
-    expect(g.node("A").rank - minLen >= g.node("B").rank, isTrue);
+    expect(g.node("A")['rank'] - minLen >= g.node("B")['rank'], isTrue);
   });
 
-  test("ensures that \"aax\" nodes are on the same rank as source nodes", () {
+  test("ensures that \"aax\" nodes are on the unorderedEquals rank as source nodes", () {
     var g = parse("digraph { A [prefRank=max]; B }");
 
     runRank(g, withSimplex);
 
-    expect(g.node("A").rank, equals(g.node("B").rank));
+    expect(g.node("A")['rank'], equals(g.node("B")['rank']));
   });
 
-  test("gives the same rank to nodes with the same preference", () {
+  test("gives the unorderedEquals rank to nodes with the unorderedEquals preference", () {
     var g = parse("digraph {" +
                     "A [prefRank=same_1]; B [prefRank=same_1];" +
                     "C [prefRank=same_2]; D [prefRank=same_2];" +
@@ -153,8 +153,8 @@ rankTests(withSimplex) {
 
     runRank(g, withSimplex);
 
-    expect(g.node("A").rank, equals(g.node("B").rank));
-    expect(g.node("C").rank, equals(g.node("D").rank));
+    expect(g.node("A")['rank'], equals(g.node("B")['rank']));
+    expect(g.node("C")['rank'], equals(g.node("D")['rank']));
   });
 
 //  test("does not apply rank constraints that are not min, max, same_*", () {
@@ -166,8 +166,8 @@ rankTests(withSimplex) {
 //    try {
 //      console.error = (x) { errors.push(x); };
 //      runRank(g, withSimplex);
-//      expect(g.node("A").rank, equals(0));
-//      expect(g.node("B").rank, equals(1));
+//      expect(g.node("A")['rank'], equals(0));
+//      expect(g.node("B")['rank'], equals(1));
 //      expect(errors.length >= 1, isTrue);
 //      expect(errors[0], equals("Unsupported rank type: foo"));
 //    } finally {
@@ -181,19 +181,19 @@ rankTests(withSimplex) {
     // This will throw an error if a cycle is formed
     runRank(g, withSimplex);
 
-    expect(g.node("B").rank, equals(g.node("C").rank));
+    expect(g.node("B")['rank'], equals(g.node("C")['rank']));
   });
 
-  test("returns a graph with edges all pointing to the same or successive ranks", () {
+  test("returns a graph with edges all pointing to the unorderedEquals or successive ranks", () {
     // This should put B above A and without any other action would leave the
     // out edge from B point to an earlier rank.
     var g = parse("digraph { A -> B; B [prefRank=min]; }");
 
     runRank(g, withSimplex);
 
-    expect(g.node("B").rank < g.node("A").rank, isTrue);
-    expect(g.successors("B"), same(["A"]));
-    expect(g.successors("A"), same([]));
+    expect(g.node("B")['rank'] < g.node("A")['rank'], isTrue);
+    expect(g.successors("B"), unorderedEquals(["A"]));
+    expect(g.successors("A"), unorderedEquals([]));
   });
 
   test("properly maintains the reversed edge state when reorienting edges", () {
@@ -203,18 +203,18 @@ rankTests(withSimplex) {
 
     runRank(g, withSimplex);
 
-    expect(g.node("C").rank < g.node("A").rank, isTrue);
-    expect(g.node("C").rank < g.node("B").rank, isTrue);
+    expect(g.node("C")['rank'] < g.node("A")['rank'], isTrue);
+    expect(g.node("C")['rank'] < g.node("B")['rank'], isTrue);
 
     restoreEdges(g);
 
-    expect(g.successors("A"), same(["B"]));
-    expect(g.successors("B"), same(["C"]));
-    expect(g.successors("C"), same(["A"]));
+    expect(g.successors("A"), unorderedEquals(["B"]));
+    expect(g.successors("B"), unorderedEquals(["C"]));
+    expect(g.successors("C"), unorderedEquals(["A"]));
   });
 
   test("handles edge reversal correctly when collapsing nodes yields a cycle", () {
-    // A and A2 get collapsed into a single node and the same happens for B and
+    // A and A2 get collapsed into a single node and the unorderedEquals happens for B and
     // B2. This yields a cycle between the A rank and the B rank and one of the
     // edges must be reversed. However, we want to be sure that the edge is
     // correct oriented when it comes out of the rank function.
@@ -227,13 +227,13 @@ rankTests(withSimplex) {
     runRank(g, withSimplex);
     restoreEdges(g);
 
-    expect(g.successors("A"), same(["B"]));
-    expect(g.successors("A2"), same([]));
-    expect(g.successors("B"), same([]));
-    expect(g.successors("B2"), same(["A2"]));
+    expect(g.successors("A"), unorderedEquals(["B"]));
+    expect(g.successors("A2"), unorderedEquals([]));
+    expect(g.successors("B"), unorderedEquals([]));
+    expect(g.successors("B2"), unorderedEquals(["A2"]));
   });
 
-  test("yields same result with network simplex and without", () {
+  test("yields unorderedEquals result with network simplex and without", () {
     // The primary purpose of this test is to exercise more of the network
     // simplex code resulting in better code coverage.
     var g = parse("digraph { n1 -> n3; n1 -> n4; n1 -> n5; n1 -> n6; n1 -> n7; " +
@@ -241,13 +241,13 @@ rankTests(withSimplex) {
 
     runRank(g, withSimplex);
 
-    expect(g.node("n1").rank, equals(0));
-    expect(g.node("n2").rank, equals(0));
-    expect(g.node("n3").rank, equals(1));
-    expect(g.node("n4").rank, equals(1));
-    expect(g.node("n5").rank, equals(1));
-    expect(g.node("n6").rank, equals(1));
-    expect(g.node("n7").rank, equals(1));
+    expect(g.node("n1")['rank'], equals(0));
+    expect(g.node("n2")['rank'], equals(0));
+    expect(g.node("n3")['rank'], equals(1));
+    expect(g.node("n4")['rank'], equals(1));
+    expect(g.node("n5")['rank'], equals(1));
+    expect(g.node("n6")['rank'], equals(1));
+    expect(g.node("n7")['rank'], equals(1));
   });
 }
 

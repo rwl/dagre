@@ -48,22 +48,22 @@ class Position {
 
     List layering = util.ordering(g);
 
-    var conflicts = findConflicts(g, layering);
+    final conflicts = findConflicts(g, layering);
 
-    var xss = {};
+    final xss = {};
     ["u", "d"].forEach((vertDir) {
       if (vertDir == "d") {
         //layering.reverse();
-        layering = layering.reversed;
+        layering.setAll(0, layering.reversed);
       }
 
       ["l", "r"].forEach((horizDir) {
         if (horizDir == "r") reverseInnerOrder(layering);
 
         var dir = vertDir + horizDir;
-        var align = verticalAlignment(g, layering, conflicts,
+        Map align = verticalAlignment(g, layering, conflicts,
                                       vertDir == "u" ? "predecessors" : "successors");
-        xss[dir]= horizontalCompaction(g, layering, align.pos, align.root, align.align);
+        xss[dir]= horizontalCompaction(g, layering, align['pos'], align['root'], align['align']);
 
         if (debugLevel >= 3) {
           debugPositioning(vertDir + horizDir, g, layering, xss[dir]);
@@ -76,7 +76,7 @@ class Position {
 
       if (vertDir == "d") {
         //layering.reverse();
-        layering = layering.reversed;
+        layering.setAll(0, layering.reversed);
       }
     });
 
@@ -84,7 +84,7 @@ class Position {
 
     g.eachNode((v, _) {
       var xs = [];
-      for (var alignment in xss) {
+      for (var alignment in xss.keys) {
         var alignmentX = xss[alignment][v];
         posXDebug(alignment, g, v, alignmentX);
         xs.add(alignmentX);
@@ -94,7 +94,7 @@ class Position {
     });
 
     // Align y coordinates with ranks
-    var y = 0, reverseY = g.graph().rankDir == "BT" || g.graph().rankDir == "RL";
+    var y = 0, reverseY = g.graph()['rankDir'] == "BT" || g.graph()['rankDir'] == "RL";
     layering.forEach((layer) {
       var maxHeight = util.max(layer.map((u) { return height(g, u); }));
       y += maxHeight / 2;
@@ -114,17 +114,18 @@ class Position {
     });
   }
 
-  /*
+  /**
    * Generate an ID that can be used to represent any undirected edge that is
    * incident on `u` and `v`.
    */
   undirEdgeId(u, v) {
-    return u < v
-      ? u.toString().length + ":" + u + "-" + v
-      : v.toString().length + ":" + v + "-" + u;
+    //return u < v
+    return u.toString().compareTo(v.toString()) < 0
+      ? "${u.toString().length}:$u-$v"
+      : "${v.toString().length}:$v-$u";
   }
 
-  findConflicts(g, layering) {
+  Map findConflicts(g, layering) {
     var conflicts = {}, // Set of conflicting edge ids
         pos = {},       // Position of node in its layer
         prevLayer,
@@ -143,7 +144,11 @@ class Position {
       }
     }
 
-    layering[1].forEach((u, i) { pos[u] = i; });
+    int i = 0;
+    layering[1].forEach((u) {
+      pos[u] = i;
+      i++;
+    });
     for (var i = 1; i < layering.length - 1; ++i) {
       prevLayer = layering[i];
       currLayer = layering[i+1];
@@ -158,11 +163,11 @@ class Position {
         pos[u] = l1;
         k1 = null;
 
-        if (g.node(u).dummy) {
+        if (g.node(u).containsKey('dummy') && g.node(u)['dummy']) {
           var uPred = g.predecessors(u)[0];
           // Note: In the case of self loops and sideways edges it is possible
           // for a dummy not to have a predecessor.
-          if (uPred != null && g.node(uPred).dummy)
+          if (uPred != null && g.node(uPred).containsKey('dummy') && g.node(uPred)['dummy'])
             k1 = pos[uPred];
         }
         if (k1 == null && l1 == currLayer.length - 1)
@@ -180,32 +185,36 @@ class Position {
     return conflicts;
   }
 
-  verticalAlignment(g, layering, conflicts, relationship) {
+  Map verticalAlignment(g, layering, Map conflicts, relationship) {
     var pos = {},   // Position for a node in its layer
         root = {},  // Root of the block that the node participates in
         align = {}; // Points to the next node in the block or, if the last
                     // element in the block, points to the first block"s root
 
     layering.forEach((layer) {
-      layer.forEach((u, i) {
+      int i = 0;
+      layer.forEach((u) {
         root[u] = u;
         align[u] = u;
         pos[u] = i;
+        i++;
       });
     });
 
     layering.forEach((layer) {
       var prevIdx = -1;
       layer.forEach((v) {
-        var related = g[relationship](v), // Adjacent nodes from the previous layer
+        var related,// = g[relationship](v), // Adjacent nodes from the previous layer
             mid;                          // The mid point in the related array
+        if (relationship == "predecessors") related = g.predecessors(v);
+        else if (relationship == "successors") related = g.successors(v);
 
         if (related.length > 0) {
           related.sort((x, y) { return pos[x] - pos[y]; });
           mid = (related.length - 1) / 2;
-          related.slice(mid.floor(), mid.ceil() + 1).forEach((u) {
+          related.sublist(mid.floor(), mid.floor() + mid.ceil() + 1).forEach((u) {
             if (align[v] == v) {
-              if (!conflicts[undirEdgeId(u, v)] && prevIdx < pos[u]) {
+              if (conflicts[undirEdgeId(u, v)] == null && prevIdx < pos[u]) {
                 align[u] = v;
                 align[v] = root[v] = root[u];
                 prevIdx = pos[u];
@@ -216,7 +225,7 @@ class Position {
       });
     });
 
-    return { pos: pos, root: root, align: align };
+    return { 'pos': pos, 'root': root, 'align': align };
   }
 
   // This function deviates from the standard BK algorithm in two ways. First
@@ -231,11 +240,14 @@ class Position {
         xs = {};         // Calculated X positions
 
     layering.forEach((layer) {
-      layer.forEach((u, i) {
+      int i = 0;
+      layer.forEach((u) {
         sink[u] = u;
         maybeShift[u] = {};
-        if (i > 0)
+        if (i > 0) {
           pred[u] = layer[i - 1];
+        }
+        i++;
       });
     });
 
@@ -319,19 +331,19 @@ class Position {
     }));
   }
 
-  balance(g, layering, xss) {
+  balance(g, layering, Map xss) {
     var min = {},                            // Min coordinate for the alignment
         max = {},                            // Max coordinate for the alginment
         smallestAlignment,
         shift = {},                          // Amount to shift a given alignment
         alignment;
 
-    updateAlignment(v) {
+    updateAlignment(v, _) {
       xss[alignment][v] += shift[alignment];
     }
 
     var smallest = double.INFINITY;
-    for (alignment in xss) {
+    for (alignment in xss.keys) {
       var xs = xss[alignment];
       min[alignment] = findMinCoord(g, layering, xs);
       max[alignment] = findMaxCoord(g, layering, xs);
@@ -353,36 +365,36 @@ class Position {
     });
 
     // Find average of medians for xss array
-    for (alignment in xss) {
+    for (alignment in xss.keys) {
       g.eachNode(updateAlignment);
     }
   }
 
-  flipHorizontally(xs) {
-    for (var u in xs) {
+  flipHorizontally(Map xs) {
+    for (var u in xs.keys) {
       xs[u] = -xs[u];
     }
   }
 
   reverseInnerOrder(layering) {
-    layering.forEach((layer) {
-      layer.reverse();
+    layering.forEach((List layer) {
+      layer.setAll(0, layer.reversed);
     });
   }
 
   width(BaseGraph g, u) {
-    switch (g.graph().rankDir) {
-      case "LR": return g.node(u).height;
-      case "RL": return g.node(u).height;
-      default:   return g.node(u).width;
+    switch (g.graph()['rankDir']) {
+      case "LR": return g.node(u)['height'];
+      case "RL": return g.node(u)['height'];
+      default:   return g.node(u)['width'];
     }
   }
 
   height(BaseGraph g, u) {
-    switch(g.graph().rankDir) {
-      case "LR": return g.node(u).width;
-      case "RL": return g.node(u).width;
-      default:   return g.node(u).height;
+    switch(g.graph()['rankDir']) {
+      case "LR": return g.node(u)['width'];
+      case "RL": return g.node(u)['width'];
+      default:   return g.node(u)['height'];
     }
   }
 
@@ -391,28 +403,28 @@ class Position {
       return universalSep;
     }
     var w = width(g, u);
-    var s = g.node(u).dummy ? edgeSep : nodeSep;
+    var s = g.node(u).containsKey('dummy') && g.node(u)['dummy'] ? edgeSep : nodeSep;
     return (w + s) / 2;
   }
 
   posX(BaseGraph g, u, [x=null]) {
-    if (g.graph().rankDir == "LR" || g.graph().rankDir == "RL") {
+    if (g.graph()['rankDir'] == "LR" || g.graph()['rankDir'] == "RL") {
       if (x == null) {
-        return g.node(u).y;
+        return g.node(u)['y'];
       } else {
-        g.node(u).y = x;
+        g.node(u)['y'] = x;
       }
     } else {
       if (x == null) {
-        return g.node(u).x;
+        return g.node(u)['x'];
       } else {
-        g.node(u).x = x;
+        g.node(u)['x'] = x;
       }
     }
   }
 
   posXDebug(name, BaseGraph g, u, [x=null]) {
-    if (g.graph().rankDir == "LR" || g.graph().rankDir == "RL") {
+    if (g.graph()['rankDir'] == "LR" || g.graph()['rankDir'] == "RL") {
       if (x == null) {
         return g.node(u)[name];
       } else {
@@ -428,17 +440,17 @@ class Position {
   }
 
   posY(BaseGraph g, u, [y=null]) {
-    if (g.graph().rankDir == "LR" || g.graph().rankDir == "RL") {
+    if (g.graph()['rankDir'] == "LR" || g.graph()['rankDir'] == "RL") {
       if (y == null) {
-        return g.node(u).x;
+        return g.node(u)['x'];
       } else {
-        g.node(u).x = y;
+        g.node(u)['x'] = y;
       }
     } else {
       if (y == null) {
-        return g.node(u).y;
+        return g.node(u)['y'];
       } else {
-        g.node(u).y = y;
+        g.node(u)['y'] = y;
       }
     }
   }

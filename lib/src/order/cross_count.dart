@@ -48,7 +48,7 @@ int twoLayerCrossCount(Digraph g, layer1, layer2) {
     var treeIndex = i + firstIndex;
     ++tree[treeIndex];
     while (treeIndex > 0) {
-      if (treeIndex % 2) {
+      if ((treeIndex % 2) != 0) {
         cc += tree[treeIndex + 1];
       }
       treeIndex = (treeIndex - 1) >> 1;

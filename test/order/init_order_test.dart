@@ -34,7 +34,7 @@ initOrderTest() {
       // There is no guarantee about what order gets assigned to what node, but
       // we can assert that the order values 0, 1, 2 were assigned.
       expect(g.nodes().map((u) { return g.node(u)['order']; }),
-                         same([0, 1, 2]));
+                         unorderedEquals([0, 1, 2]));
     });
 
     test("does not assign order to subgraphs", () {

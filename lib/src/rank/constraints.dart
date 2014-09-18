@@ -111,7 +111,7 @@ addLightEdgesFromMinNode(Digraph g, sg, minNode) {
     g.children(sg).forEach((u) {
       // The dummy check ensures we don"t add an edge if the node is involved
       // in a self loop or sideways edge.
-      if (u != minNode && g.outEdges(minNode, u).length == 0 && !g.node(u)['dummy']) {
+      if (u != minNode && g.outEdges(minNode, u).length == 0 && (!g.node(u).containsKey('dummy') || !g.node(u)['dummy'])) {
         g.addEdge(null, minNode, u, { 'minLen': 0 });
       }
     });
@@ -123,7 +123,7 @@ addLightEdgesToMaxNode(Digraph g, sg, maxNode) {
     g.children(sg).forEach((u) {
       // The dummy check ensures we don"t add an edge if the node is involved
       // in a self loop or sideways edge.
-      if (u != maxNode && g.outEdges(u, maxNode).length == 0 && !g.node(u)['dummy']) {
+      if (u != maxNode && g.outEdges(u, maxNode).length == 0 && (!g.node(u).containsKey('dummy') || !g.node(u)['dummy'])) {
         g.addEdge(null, u, maxNode, { 'minLen': 0 });
       }
     });

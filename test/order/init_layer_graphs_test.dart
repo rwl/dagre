@@ -16,10 +16,10 @@ initLayerGraphsTest() {
 
       var layerGraphs = initLayerGraphs(g);
 
-      expect(layerGraphs, isNull);
+      expect(layerGraphs, isNotNull);
       expect(layerGraphs.length, equals(1));
-      expect(layerGraphs[0].nodes(), same([1, 2, 3]));
-      expect(layerGraphs[0].children(null), same([1, 2, 3]));
+      expect(layerGraphs[0].nodes(), unorderedEquals([1, 2, 3]));
+      expect(layerGraphs[0].children(null), unorderedEquals([1, 2, 3]));
     });
 
     test("constructs a 2-level graph for a single layer", () {
@@ -31,11 +31,11 @@ initLayerGraphsTest() {
 
       var layerGraphs = initLayerGraphs(g);
 
-      expect(layerGraphs, isNull);
+      expect(layerGraphs, isNotNull);
       expect(layerGraphs.length, equals(1));
-      expect(layerGraphs[0].nodes(), same([1, 2, 3, "sg1"]));
-      expect(layerGraphs[0].children(null), same([1, 3, "sg1"]));
-      expect(layerGraphs[0].children("sg1"), same([2]));
+      expect(layerGraphs[0].nodes(), unorderedEquals([1, 2, 3, "sg1"]));
+      expect(layerGraphs[0].children(null), unorderedEquals([1, 3, "sg1"]));
+      expect(layerGraphs[0].children("sg1"), unorderedEquals([2]));
     });
 
     test("constructs 2 layers for a 2-layer graph", () {
@@ -50,16 +50,16 @@ initLayerGraphsTest() {
 
       var layerGraphs = initLayerGraphs(g);
 
-      expect(layerGraphs, isNull);
+      expect(layerGraphs, isNotNull);
       expect(layerGraphs.length, equals(2));
 
-      expect(layerGraphs[0].nodes(), same([1, 2, 3, "sg1"]));
-      expect(layerGraphs[0].children(null), same([1, 3, "sg1"]));
-      expect(layerGraphs[0].children("sg1"), same([2]));
+      expect(layerGraphs[0].nodes(), unorderedEquals([1, 2, 3, "sg1"]));
+      expect(layerGraphs[0].children(null), unorderedEquals([1, 3, "sg1"]));
+      expect(layerGraphs[0].children("sg1"), unorderedEquals([2]));
 
-      expect(layerGraphs[1].nodes(), same([4, 5, "sg1"]));
-      expect(layerGraphs[1].children(null), same([4, "sg1"]));
-      expect(layerGraphs[1].children("sg1"), same([5]));
+      expect(layerGraphs[1].nodes(), unorderedEquals([4, 5, "sg1"]));
+      expect(layerGraphs[1].children(null), unorderedEquals([4, "sg1"]));
+      expect(layerGraphs[1].children("sg1"), unorderedEquals([5]));
     });
 
     test("handles multiple nestings", () {
@@ -79,18 +79,18 @@ initLayerGraphsTest() {
 
       var layerGraphs = initLayerGraphs(g);
 
-      expect(layerGraphs, isNull);
+      expect(layerGraphs, isNotNull);
       expect(layerGraphs.length, equals(2));
 
-      expect(layerGraphs[0].nodes(), same([1, 2, 3, "sg1", "sg2"]));
-      expect(layerGraphs[0].children(null), same([3, "sg1"]));
-      expect(layerGraphs[0].children("sg1"), same([2, "sg2"]));
-      expect(layerGraphs[0].children("sg2"), same([1]));
+      expect(layerGraphs[0].nodes(), unorderedEquals([1, 2, 3, "sg1", "sg2"]));
+      expect(layerGraphs[0].children(null), unorderedEquals([3, "sg1"]));
+      expect(layerGraphs[0].children("sg1"), unorderedEquals([2, "sg2"]));
+      expect(layerGraphs[0].children("sg2"), unorderedEquals([1]));
 
-      expect(layerGraphs[1].nodes(), same([4, 5, 6, "sg1", "sg2"]));
-      expect(layerGraphs[1].children(null), same([6, "sg1"]));
-      expect(layerGraphs[1].children("sg1"), same([5, "sg2"]));
-      expect(layerGraphs[1].children("sg2"), same([4]));
+      expect(layerGraphs[1].nodes(), unorderedEquals([4, 5, 6, "sg1", "sg2"]));
+      expect(layerGraphs[1].children(null), unorderedEquals([6, "sg1"]));
+      expect(layerGraphs[1].children("sg1"), unorderedEquals([5, "sg2"]));
+      expect(layerGraphs[1].children("sg2"), unorderedEquals([4]));
     });
 
     test("does not include subgraphs in layers where it has no nodes", () {
@@ -108,12 +108,12 @@ initLayerGraphsTest() {
 
       var layerGraphs = initLayerGraphs(g);
 
-      expect(layerGraphs, isNull);
+      expect(layerGraphs, isNotNull);
       expect(layerGraphs.length, equals(3));
 
-      expect(layerGraphs[0].nodes(), same(["sg1", 1, 2]));
-      expect(layerGraphs[1].nodes(), same([3]));
-      expect(layerGraphs[2].nodes(), same(["sg1", 4, 5]));
+      expect(layerGraphs[0].nodes(), unorderedEquals(["sg1", 1, 2]));
+      expect(layerGraphs[1].nodes(), unorderedEquals([3]));
+      expect(layerGraphs[2].nodes(), unorderedEquals(["sg1", 4, 5]));
     });
   });
 }

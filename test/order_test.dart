@@ -47,7 +47,7 @@ orderTest() {
 
       order(g);
 
-      expect(g.nodes().map((u) { return g.node(u)['order']; }), same([0, 1]));
+      expect(g.nodes().map((u) { return g.node(u)['order']; }), unorderedEquals([0, 1]));
     });
 
     test("does not assign an order to a subgraph itself", () {

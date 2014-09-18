@@ -40,14 +40,14 @@ constraintsTest() {
         expect(g.inEdges(min).length, equals(0), reason: "there should be no in-edges to the min node");
 
         expect(g.outEdges(min, 1).length, equals(1));
-        var eMin1 = g.outEdges(min, 1);
+        var eMin1 = g.outEdges(min, 1).first;
         expect(g.edge(eMin1), containsPair("minLen", 2));
         expect(g.edge(eMin1), containsPair("reversed", true));
 
         expect(g.outEdges(min, 4).length, equals(1));
-        var eMin4 = g.outEdges(min, 4);
+        var eMin4 = g.outEdges(min, 4).first;
         expect(g.edge(eMin4), containsPair("minLen", 4));
-        expect(g.edge(eMin4), isNot(anyElement(isIn("reversed"))));
+        expect(g.edge(eMin4), isNot(contains("reversed")));
       });
 
       test("collapses nodes with prefRank=max", () {
@@ -68,12 +68,12 @@ constraintsTest() {
         expect(g.outEdges(max).length, equals(0), reason: "there should be no out-edges from the max node");
 
         expect(g.outEdges(1, max).length, equals(1));
-        var eMax1 = g.outEdges(1, max);
+        var eMax1 = g.outEdges(1, max).first;
         expect(g.edge(eMax1), containsPair("minLen", 2));
-        expect(g.edge(eMax1), isNot(anyElement(isIn("reversed"))));
+        expect(g.edge(eMax1), isNot(contains("reversed")));
 
         expect(g.outEdges(4, max).length, equals(1));
-        var eMax4 = g.outEdges(4, max);
+        var eMax4 = g.outEdges(4, max).first;
         expect(g.edge(eMax4), containsPair("minLen", 4));
         expect(g.edge(eMax4), containsPair("reversed", true));
       });
@@ -93,11 +93,11 @@ constraintsTest() {
         var x = g.nodes().where((u) { return u != 1 && u != 4; }).first;
 
         expect(g.outEdges(1, x).length, equals(1));
-        var eSame1 = g.outEdges(1, x);
+        var eSame1 = g.outEdges(1, x).first;
         expect(g.edge(eSame1), containsPair("minLen", 2));
 
         expect(g.outEdges(x, 4).length, equals(1));
-        var eSame4 = g.outEdges(x, 4);
+        var eSame4 = g.outEdges(x, 4).first;
         expect(g.edge(eSame4), containsPair("minLen", 4));
       });
 

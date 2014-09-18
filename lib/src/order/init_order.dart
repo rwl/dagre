@@ -7,18 +7,19 @@ part of dagre.order;
  * order of the nodes in each rank is entirely arbitrary.
  */
 initOrder(BaseGraph g, [bool random=false]) {
-  var layers = [];
+  final layers = new SplayTreeMap<int, List>();
 
   g.eachNode((u, Map value) {
-    List layer = layers[value['rank']];
     if (/*g.children && */g.children(u).length > 0) return;
+//    if (!value.containsKey('rank')) value['rank'] = -1;
+    List layer = layers[value['rank']];
     if (layer == null) {
       layer = layers[value['rank']] = [];
     }
     layer.add(u);
   });
 
-  layers.forEach((List layer) {
+  layers.values.forEach((List layer) {
     if (random) {
       util.shuffle(layer);
     }
@@ -29,7 +30,7 @@ initOrder(BaseGraph g, [bool random=false]) {
     });
   });
 
-  var cc = crossCount(g);
+  final cc = crossCount(g);
   g.graph()['orderInitCC'] = cc;
   g.graph()['orderCC'] = double.MAX_FINITE;
 }

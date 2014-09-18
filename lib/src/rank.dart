@@ -29,7 +29,7 @@ part of dagre;
  *
  *  * Each edge in the input graph must have an assigned "minLen" attribute
  */
-runRank(BaseGraph g, useSimplex) {
+runRank(BaseGraph g, bool useSimplex) {
   expandSelfLoops(g);
 
   // If there are rank constraints on nodes, then build a new graph that
@@ -101,8 +101,8 @@ expandSelfLoops(BaseGraph g) {
 expandSidewaysEdges(BaseGraph g) {
   g.eachEdge((e, u, v, a) {
     if (u == v) {
-      var origEdge = a.originalEdge,
-          dummy = addDummyNode(g, origEdge.e, origEdge.u, origEdge.v, origEdge.value, 0, true);
+      Map origEdge = a['originalEdge'];
+      var dummy = addDummyNode(g, origEdge['e'], origEdge['u'], origEdge['v'], origEdge['value'], 0, true);
       g.addEdge(null, u, dummy, {'minLen': 1});
       g.addEdge(null, dummy, v, {'minLen': 1});
       g.delEdge(e);
@@ -121,10 +121,10 @@ addDummyNode(BaseGraph g, e, u, v, Map a, index, bool isLabel) {
 }
 
 reorientEdges(BaseGraph g) {
-  g.eachEdge((e, u, v, value) {
-    if (g.node(u).rank > g.node(v).rank) {
+  g.eachEdge((e, u, v, Map value) {
+    if (g.node(u)['rank'] > g.node(v)['rank']) {
       g.delEdge(e);
-      value.reversed = true;
+      value['reversed'] = true;
       g.addEdge(e, v, u, value);
     }
   });

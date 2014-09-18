@@ -71,7 +71,7 @@ sortLayerTest() {
       expect(g.node(1)['order'], equals(0));
       expect(g.node(2)['order'], equals(1));
       expect(g.node(3)['order'], equals(2));
-      expect(g.node("sg1"), "order");
+      expect(g.node("sg1"), isNot(contains("order")));
     });
 
     test("handles nested subgraphs", () {
@@ -126,10 +126,10 @@ sortLayerTest() {
       expect(g.node(2)['order'], equals(1));
       expect(g.node(3)['order'], equals(2));
       expect(g.node(4)['order'], equals(3));
-      expect(cg.nodes(), same(["sg1", "sg2", "sg3"]));
-      expect(cg.successors("sg1"), same(["sg2"]));
-      expect(cg.successors("sg2"), same(["sg3"]));
-      expect(cg.successors("sg3"), same([]));
+      expect(cg.nodes(), unorderedEquals(["sg1", "sg2", "sg3"]));
+      expect(cg.successors("sg1"), unorderedEquals(["sg2"]));
+      expect(cg.successors("sg2"), unorderedEquals(["sg3"]));
+      expect(cg.successors("sg3"), unorderedEquals([]));
     });
 
     test("returns a constraint graph a layer with nested subgraphs", () {
@@ -155,11 +155,11 @@ sortLayerTest() {
       expect(g.node(1)['order'], equals(0));
       expect(g.node(2)['order'], equals(1));
       expect(g.node(3)['order'], equals(2));
-      expect(cg.nodes(), same(["sg1", "sg2", "sg3", "sg4"]));
-      expect(cg.successors("sg1"), same(["sg2"]));
-      expect(cg.successors("sg2"), same([]));
-      expect(cg.successors("sg3"), same(["sg4"]));
-      expect(cg.successors("sg4"), same([]));
+      expect(cg.nodes(), unorderedEquals(["sg1", "sg2", "sg3", "sg4"]));
+      expect(cg.successors("sg1"), unorderedEquals(["sg2"]));
+      expect(cg.successors("sg2"), unorderedEquals([]));
+      expect(cg.successors("sg3"), unorderedEquals(["sg4"]));
+      expect(cg.successors("sg4"), unorderedEquals([]));
     });
 
     test("respects the constraint graph", () {

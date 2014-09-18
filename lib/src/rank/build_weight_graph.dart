@@ -42,6 +42,6 @@ Digraph buildWeightGraph(BaseGraph g) {
  * incident on the same two nodes.
  */
 String incidenceId(u, v) {
-  //return u < v ? "${u.length}:$u-$v" : "${v.length}:$v-$u";
-  return u < v ? ":$u-$v" : ":$v-$u";
+  return u < v ? "${u.toString().length}:$u-$v" : "${v.toString().length}:$v-$u";
+  //return u < v ? ":$u-$v" : ":$v-$u";
 }

@@ -33,11 +33,12 @@ all(List xs, f(x)) {
   return true;
 }
 
-/*
+/**
  * Accumulates the sum of elements in the given array using the `+` operator.
  */
-sum(values) {
-  return values.reduce((acc, x) { return acc + x; }, 0);
+num sum(Iterable values) {
+  if (values.length == 0) return 0;
+  return values.reduce((acc, x) { return acc + x; });//, 0);
 }
 
 /*

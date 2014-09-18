@@ -6,7 +6,7 @@ part of dagre.rank;
 //
 //module.exports = initRank;
 
-/*
+/**
  * Assigns a `rank` attribute to each node in the input graph and ensures that
  * this rank respects the `minLen` attribute of incident edges.
  *
@@ -26,8 +26,10 @@ initRank(Digraph g) {
     }
 
     var minLens = inEdges.map((e) {
-      return g.node(g.source(e))['rank'] + g.edge(e)['minLen'];
+      var r = g.node(g.source(e))['rank'];
+      var ml = g.edge(e)['minLen'];
+      return r + ml;
     });
-    g.node(u).rank = util.max(minLens);
+    g.node(u)['rank'] = util.max(minLens);
   });
 }

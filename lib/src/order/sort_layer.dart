@@ -10,29 +10,31 @@ part of dagre.order;
 
 sortLayer(g, cg, weights) {
   weights = adjustWeights(g, weights);
-  var result = sortLayerSubgraph(g, null, cg, weights);
+  final result = sortLayerSubgraph(g, null, cg, weights);
 
-  result.list.forEach((u, i) {
-    g.node(u).order = i;
+  int i = 0;
+  result['list'].forEach((u) {
+    g.node(u)['order'] = i;
+    i++;
   });
-  return result.constraintGraph;
+  return result['constraintGraph'];
 }
 
-sortLayerSubgraph(g, sg, cg, weights) {
-  cg = cg ? cg.filterNodes(nodesFromList(g.children(sg))) : new Digraph();
+Map sortLayerSubgraph(g, sg, cg, weights) {
+  cg = cg != null ? cg.filterNodes(nodesFromList(g.children(sg))) : new Digraph();
 
   final nodeData = {};
   g.children(sg).forEach((u) {
-    if (g.children(u).length) {
+    if (g.children(u).length != 0) {
       nodeData[u] = sortLayerSubgraph(g, u, cg, weights);
-      nodeData[u].firstSG = u;
-      nodeData[u].lastSG = u;
+      nodeData[u]['firstSG'] = u;
+      nodeData[u]['lastSG'] = u;
     } else {
       var ws = weights[u];
       nodeData[u] = {
         'degree': ws.length,
         'barycenter': util.sum(ws) / ws.length,
-        'order': g.node(u).order,
+        'order': g.node(u)['order'],
         'orderCount': 1,
         'list': [u]
       };
@@ -41,13 +43,13 @@ sortLayerSubgraph(g, sg, cg, weights) {
 
   resolveViolatedConstraints(g, cg, nodeData);
 
-  var keys = nodeData.keys;
+  final keys = nodeData.keys.toList();
   keys.sort((x, y) {
-    return nodeData[x].barycenter - nodeData[y].barycenter ||
-           nodeData[x].order - nodeData[y].order;
+    final bc = nodeData[x]['barycenter'] - nodeData[y]['barycenter'];
+    return bc != 0 ? bc : nodeData[x]['order'] - nodeData[y]['order'];
   });
 
-  var result = keys.map((u) { return nodeData[u]; })
+  final result = keys.map((u) { return nodeData[u]; })
                     .reduce((lhs, rhs) { return mergeNodeData(g, lhs, rhs); });
   return result;
 }
@@ -71,7 +73,7 @@ Map mergeNodeData(BaseGraph g, Map lhs, Map rhs) {
     'order': (lhs['order'] * lhs['orderCount'] + rhs['order'] * rhs['orderCount']) /
            (lhs['orderCount'] + rhs['orderCount']),
     'orderCount': lhs['orderCount'] + rhs['orderCount'],
-    'list': lhs['list'].concat(rhs['list']),
+    'list': concat([lhs['list'], (rhs['list'])]).toList(),
     'firstSG': lhs['firstSG'] != null ? lhs['firstSG'] : rhs['firstSG'],
     'lastSG': rhs['lastSG'] != null ? rhs['lastSG'] : lhs['lastSG'],
     'constraintGraph': cg
@@ -114,7 +116,7 @@ resolveViolatedConstraints(BaseGraph g, Digraph cg, nodeData) {
         target = cg.target(violated);
 
     var v;
-    while ((v = cg.addNode(null)) && g.hasNode(v)) {
+    while ((v = cg.addNode(null)) != null && g.hasNode(v)) {
       cg.delNode(v);
     }
 
@@ -135,7 +137,7 @@ findViolatedConstraint(Digraph cg, nodeData) {
     var inEdges = cg.inEdges(u);
     for (var j = 0; j < inEdges.length; ++j) {
       var e = inEdges[j];
-      if (nodeData[cg.source(e)].barycenter >= nodeData[u].barycenter) {
+      if (nodeData[cg.source(e)]['barycenter'] >= nodeData[u]['barycenter']) {
         return e;
       }
     }
@@ -153,7 +155,7 @@ adjustWeights(BaseGraph g, weights) {
     if (g.children(u).length != 0) return;
 
     var ws = weights[u];
-    if (ws.length) {
+    if (ws.length != 0) {
       minW = Math.min(minW, util.min(ws));
       maxW = Math.max(maxW, util.max(ws));
     }
@@ -164,11 +166,11 @@ adjustWeights(BaseGraph g, weights) {
     if (g.children(u).length != 0) return;
 
     var ws = weights[u];
-    if (!ws.length) {
-      adjusted[u] = [g.node(u).order];
+    if (ws.length == 0) {
+      adjusted[u] = [g.node(u)['order']];
     } else {
       adjusted[u] = ws.map((w) {
-        if (rangeW) {
+        if (rangeW != 0) {
           return (w - minW) * (g.order() - 1) / rangeW;
         } else {
           return g.order() - 1 / 2;

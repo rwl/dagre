@@ -13,9 +13,9 @@ part of dagre;
 const DEFAULT_MAX_SWEEPS = 24;
 //order.DEFAULT_MAX_SWEEPS = DEFAULT_MAX_SWEEPS;
 
-/*
- * Runs the order phase with the specified `graph, `maxSweeps`, and
- * `debugLevel`. If `maxSweeps` is not specified we use `DEFAULT_MAX_SWEEPS`.
+/**
+ * Runs the order phase with the specified `graph`, [maxSweeps], and
+ * `debugLevel`. If [maxSweeps] is not specified we use [DEFAULT_MAX_SWEEPS].
  * If `debugLevel` is not set we assume 0.
  */
 order(Digraph g, [maxSweeps=DEFAULT_MAX_SWEEPS]) {
@@ -23,7 +23,8 @@ order(Digraph g, [maxSweeps=DEFAULT_MAX_SWEEPS]) {
 //    maxSweeps = DEFAULT_MAX_SWEEPS;
 //  }
 
-  var restarts = g.graph().containsKey('orderRestarts') ? g.graph()['orderRestarts'] : 0;
+  final restarts = g.graph().containsKey('orderRestarts') &&
+      g.graph()['orderRestarts'] != null ? g.graph()['orderRestarts'] : 0;
 
   final layerGraphs = initLayerGraphs(g);
   // TODO: remove this when we add back support for ordering clusters
@@ -37,14 +38,14 @@ order(Digraph g, [maxSweeps=DEFAULT_MAX_SWEEPS]) {
       allTimeBest = {};
 
   saveAllTimeBest() {
-    g.eachNode((u, value) { allTimeBest[u] = value.order; });
+    g.eachNode((u, Map value) { allTimeBest[u] = value['order']; });
   }
 
   for (var j = 0; j < restarts.toDouble() + 1 && allTimeBestCC != 0; ++j) {
     currentBestCC = double.MAX_FINITE;
     initOrder(g, restarts > 0);
 
-    util.log(2, "Order phase start cross count: " + g.graph().orderInitCC);
+    util.log(2, "Order phase start cross count: ${g.graph()['orderInitCC']}");
 
     var i = 0, lastBest, cc;
     for (lastBest = 0;
@@ -60,7 +61,7 @@ order(Digraph g, [maxSweeps=DEFAULT_MAX_SWEEPS]) {
           allTimeBestCC = cc;
         }
       }
-      util.log(3, "Order phase start " + j + " iter " + i + " cross count: " + cc);
+      util.log(3, "Order phase start $j iter $i cross count: $cc");
     }
   }
 
@@ -69,17 +70,17 @@ order(Digraph g, [maxSweeps=DEFAULT_MAX_SWEEPS]) {
       g.node(u)['order'] = allTimeBest[u];
     }
   });
-  g.graph().orderCC = allTimeBestCC;
+  g.graph()['orderCC'] = allTimeBestCC;
 
-  util.log(2, "Order iterations: " + iters);
-  util.log(2, "Order phase best cross count: " + g.graph().orderCC);
+  util.log(2, "Order iterations: $iters");
+  util.log(2, "Order phase best cross count: ${g.graph()['orderCC']}");
 }
 
 predecessorWeights(g, nodes) {
   var weights = {};
   nodes.forEach((u) {
     weights[u] = g.inEdges(u).map((e) {
-      return g.node(g.source(e)).order;
+      return g.node(g.source(e))['order'];
     });
   });
   return weights;
@@ -89,7 +90,7 @@ successorWeights(Digraph g, nodes) {
   var weights = {};
   nodes.forEach((u) {
     weights[u] = g.outEdges(u).map((e) {
-      return g.node(g.target(e)).order;
+      return g.node(g.target(e))['order'];
     });
   });
   return weights;

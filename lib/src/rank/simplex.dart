@@ -1,6 +1,6 @@
 part of dagre.rank;
 
-simplex(BaseGraph graph, spanningTree) {
+simplex(BaseGraph graph, BaseGraph spanningTree) {
   // The network simplex algorithm repeatedly replaces edges of
   // the spanning tree with negative cut values until no such
   // edge exists.
@@ -20,25 +20,25 @@ simplex(BaseGraph graph, spanningTree) {
  * Negative cut values typically indicate edges that would yield a
  * smaller edge length sum if they were lengthened.
  */
-initCutValues(BaseGraph graph, spanningTree) {
+initCutValues(BaseGraph graph, Digraph spanningTree) {
   computeLowLim(spanningTree);
 
-  spanningTree.eachEdge((id, u, v, treeValue) {
-    treeValue.cutValue = 0;
+  spanningTree.eachEdge((id, u, v, Map treeValue) {
+    treeValue['cutValue'] = 0;
   });
 
   // Propagate cut values up the tree.
   dfs(n) {
     var children = spanningTree.successors(n);
     for (var c in children) {
-      var child = children[c];
+      var child = c;//TODO children[c];
       dfs(child);
     }
-    if (n != spanningTree.graph().root) {
+    if (n != spanningTree.graph()['root']) {
       setCutValue(graph, spanningTree, n);
     }
   }
-  dfs(spanningTree.graph().root);
+  dfs(spanningTree.graph()['root']);
 }
 
 /**
@@ -48,22 +48,22 @@ initCutValues(BaseGraph graph, spanningTree) {
  * way to test whether u is an ancestor of v since
  * low(u) <= lim(v) <= lim(u) if and only if u is an ancestor.
  */
-computeLowLim(tree) {
+computeLowLim(Digraph tree) {
   int postOrderNum = 0;
 
   dfs(n) {
     var children = tree.successors(n);
     var low = postOrderNum;
     for (var c in children) {
-      var child = children[c];
+      var child = c;//TODO children[c];
       dfs(child);
-      low = Math.min(low, tree.node(child).low);
+      low = Math.min(low, tree.node(child)['low']);
     }
-    tree.node(n).low = low;
-    tree.node(n).lim = postOrderNum++;
+    tree.node(n)['low'] = low;
+    tree.node(n)['lim'] = postOrderNum++;
   }
 
-  dfs(tree.graph().root);
+  dfs(tree.graph()['root']);
 }
 
 /**
@@ -75,14 +75,14 @@ computeLowLim(tree) {
  *          /      \
  *         u        v
  */
-setCutValue(Digraph graph, tree, child) {
+setCutValue(Digraph graph, Digraph tree, child) {
   var parentEdge = tree.inEdges(child)[0];
 
   // List of child"s children in the spanning tree.
   final grandchildren = [];
   var grandchildEdges = tree.outEdges(child);
   for (var gce in grandchildEdges) {
-    grandchildren.add(tree.target(grandchildEdges[gce]));
+    grandchildren.add(tree.target(gce));//TODO grandchildEdges[gce]));
   }
 
   int cutValue = 0;
@@ -97,9 +97,9 @@ setCutValue(Digraph graph, tree, child) {
   var outEdges = graph.outEdges(child);
   var gc;
   for (var oe in outEdges) {
-    var succ = graph.target(outEdges[oe]);
+    var succ = graph.target(oe);//TODO outEdges[oe]);
     for (gc in grandchildren) {
-      if (inSubtree(tree, succ, grandchildren[gc])) {
+      if (inSubtree(tree, succ, gc/*TODO grandchildren[gc]*/)) {
         E++;
       }
     }
@@ -111,9 +111,9 @@ setCutValue(Digraph graph, tree, child) {
   // Consider all graph edges to child.
   var inEdges = graph.inEdges(child);
   for (var ie in inEdges) {
-    var pred = graph.source(inEdges[ie]);
+    var pred = graph.source(ie);//TODO inEdges[ie]);
     for (gc in grandchildren) {
-      if (inSubtree(tree, pred, grandchildren[gc])) {
+      if (inSubtree(tree, pred, gc/*TODO grandchildren[gc]*/)) {
         F++;
       }
     }
@@ -126,21 +126,21 @@ setCutValue(Digraph graph, tree, child) {
   // and the child -> u or v edges.
   int grandchildCutSum = 0;
   for (gc in grandchildren) {
-    var cv = tree.edge(grandchildEdges[gc]).cutValue;
-    if (!tree.edge(grandchildEdges[gc]).reversed) {
+    var cv = tree.edge(gc/*TODO grandchildEdges[gc]*/)['cutValue'];
+    if (!tree.edge(gc/*TODO grandchildEdges[gc]*/)['reversed']) {
       grandchildCutSum += cv;
     } else {
       grandchildCutSum -= cv;
     }
   }
 
-  if (!tree.edge(parentEdge).reversed) {
+  if (tree.edge(parentEdge)['reversed'] == null || !tree.edge(parentEdge)['reversed']) {
     cutValue += grandchildCutSum - E + F - G + H;
   } else {
     cutValue -= grandchildCutSum - E + F - G + H;
   }
 
-  tree.edge(parentEdge).cutValue = cutValue;
+  tree.edge(parentEdge)['cutValue'] = cutValue;
 }
 
 /**
@@ -148,8 +148,8 @@ setCutValue(Digraph graph, tree, child) {
  * root.
  */
 inSubtree(tree, n, root) {
-  return (tree.node(root).low <= tree.node(n).lim &&
-          tree.node(n).lim <= tree.node(root).lim);
+  return (tree.node(root)['low'] <= tree.node(n)['lim'] &&
+          tree.node(n)['lim'] <= tree.node(root)['lim']);
 }
 
 /**
@@ -160,8 +160,8 @@ leaveEdge(tree) {
   var edges = tree.edges();
   for (var n in edges) {
     var e = edges[n];
-    var treeValue = tree.edge(e);
-    if (treeValue.cutValue < 0) {
+    Map treeValue = tree.edge(e);
+    if (treeValue['cutValue'] < 0) {
       return e;
     }
   }
@@ -175,20 +175,20 @@ leaveEdge(tree) {
  * minimum slack going from outside of that node"s subtree to inside
  * of that node"s subtree.
  */
-enterEdge(BaseGraph graph, tree, e) {
+enterEdge(BaseGraph graph, Digraph tree, e) {
   var source = tree.source(e);
   var target = tree.target(e);
-  var lower = tree.node(target).lim < tree.node(source).lim ? target : source;
+  var lower = tree.node(target)['lim'] < tree.node(source)['lim'] ? target : source;
 
   // Is the tree edge aligned with the graph edge?
-  var aligned = !tree.edge(e).reversed;
+  var aligned = !tree.edge(e)['reversed'];
 
   var minSlack = double.INFINITY;
   var minSlackEdge = null;
   if (aligned) {
-    graph.eachEdge((id, u, v, value) {
+    graph.eachEdge((id, u, v, Map value) {
       if (id != e && inSubtree(tree, u, lower) && !inSubtree(tree, v, lower)) {
-        var slack = rankUtil.slack(graph, u, v, value.minLen);
+        var slack = rankUtil.slack(graph, u, v, value['minLen']);
         if (slack < minSlack) {
           minSlack = slack;
           minSlackEdge = id;
@@ -196,9 +196,9 @@ enterEdge(BaseGraph graph, tree, e) {
       }
     });
   } else {
-    graph.eachEdge((id, u, v, value) {
+    graph.eachEdge((id, u, v, Map value) {
       if (id != e && !inSubtree(tree, u, lower) && inSubtree(tree, v, lower)) {
-        var slack = rankUtil.slack(graph, u, v, value.minLen);
+        var slack = rankUtil.slack(graph, u, v, value['minLen']);
         if (slack < minSlack) {
           minSlack = slack;
           minSlackEdge = id;
@@ -241,7 +241,7 @@ exchange(Digraph graph, tree, e, f) {
       var value = tree.edge(e);
       redirect(u);
       tree.delEdge(e);
-      value.reversed = !value.reversed;
+      value['reversed'] = !value['reversed'];
       tree.addEdge(e, v, u, value);
     }
   }
@@ -255,7 +255,7 @@ exchange(Digraph graph, tree, e, f) {
     edges = tree.inEdges(root);
   }
 
-  tree.graph().root = root;
+  tree.graph()['root'] = root;
 
   tree.addEdge(null, source, target, {'cutValue': 0});
 
@@ -270,17 +270,17 @@ exchange(Digraph graph, tree, e, f) {
  * nodes are set to the sum of minimum length constraints along
  * the path from the root.
  */
-adjustRanks(BaseGraph graph, tree) {
+adjustRanks(BaseGraph graph, Digraph tree) {
   dfs(p) {
     var children = tree.successors(p);
     children.forEach((c) {
       var minLen = minimumLength(graph, p, c);
-      graph.node(c).rank = graph.node(p).rank + minLen;
+      graph.node(c)['rank'] = graph.node(p)['rank'] + minLen;
       dfs(c);
     });
   }
 
-  dfs(tree.graph().root);
+  dfs(tree.graph()['root']);
 }
 
 /**
@@ -292,14 +292,14 @@ minimumLength(Digraph graph, u, v) {
   var outEdges = graph.outEdges(u, v);
   if (outEdges.length > 0) {
     return util.max(outEdges.map((e) {
-      return graph.edge(e).minLen;
+      return graph.edge(e)['minLen'];
     }));
   }
 
   var inEdges = graph.inEdges(u, v);
   if (inEdges.length > 0) {
     return -util.max(inEdges.map((e) {
-      return graph.edge(e).minLen;
+      return graph.edge(e)['minLen'];
     }));
   }
 }

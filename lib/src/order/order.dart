@@ -5,6 +5,7 @@ import 'dart:collection' show SplayTreeMap;
 import 'dart:typed_data' show Int32List;
 
 import 'package:graphlib/graphlib.dart';
+import 'package:quiver/iterables.dart' show concat;
 
 import '../util.dart' as util;
 

@@ -45,6 +45,7 @@ class Layout {
 
 //  self.nodeSep = delegateProperty(position.nodeSep);
   Object get nodeSep => position.nodeSep;
+  void set nodeSep(num val) { position.nodeSep = val; }
 //  self.edgeSep = delegateProperty(position.edgeSep);
   Object get edgeSep => position.edgeSep;
 //  self.universalSep = delegateProperty(position.universalSep);
@@ -128,7 +129,7 @@ class Layout {
     return g;
   }
 
-  BaseGraph run(inputGraph) {
+  BaseGraph run(BaseGraph inputGraph) {
     var rankSep = this.rankSep;
     CDigraph g;
     try {
@@ -195,7 +196,7 @@ class Layout {
       if (sourceRank + 1 < targetRank) {
         var u = s;
         for (var rank = sourceRank + 1, i = 0; rank < targetRank; ++rank, ++i) {
-          var v = "_D" + (++dummyCount);
+          var v = "_D${++dummyCount}";
           var node = {
             'width': a['width'],
             'height': a['height'],
