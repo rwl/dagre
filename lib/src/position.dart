@@ -54,16 +54,22 @@ class Position {
     ["u", "d"].forEach((vertDir) {
       if (vertDir == "d") {
         //layering.reverse();
-        layering.setAll(0, layering.reversed);
+//        print(layering);
+        layering.setAll(0, layering.reversed.toList());
+//        print(layering);
       }
 
       ["l", "r"].forEach((horizDir) {
         if (horizDir == "r") reverseInnerOrder(layering);
 
         var dir = vertDir + horizDir;
+//        print(layering);
+//        print(conflicts);
         Map align = verticalAlignment(g, layering, conflicts,
                                       vertDir == "u" ? "predecessors" : "successors");
-        xss[dir]= horizontalCompaction(g, layering, align['pos'], align['root'], align['align']);
+//        print(align);
+        xss[dir] = horizontalCompaction(g, layering, align['pos'], align['root'], align['align']);
+//        print(xss[dir]);
 
         if (debugLevel >= 3) {
           debugPositioning(vertDir + horizDir, g, layering, xss[dir]);
@@ -76,7 +82,7 @@ class Position {
 
       if (vertDir == "d") {
         //layering.reverse();
-        layering.setAll(0, layering.reversed);
+        layering.setAll(0, layering.reversed.toList());
       }
     });
 
@@ -96,7 +102,8 @@ class Position {
     // Align y coordinates with ranks
     var y = 0, reverseY = g.graph()['rankDir'] == "BT" || g.graph()['rankDir'] == "RL";
     layering.forEach((layer) {
-      var maxHeight = util.max(layer.map((u) { return height(g, u); }));
+      num maxHeight = util.max(layer.map((u) { return height(g, u); }));
+      if (maxHeight == null) maxHeight = double.NAN;
       y += maxHeight / 2;
       layer.forEach((u) {
         posY(g, u, reverseY ? -y : y);
@@ -164,7 +171,7 @@ class Position {
         k1 = null;
 
         if (g.node(u).containsKey('dummy') && g.node(u)['dummy']) {
-          var uPred = g.predecessors(u)[0];
+          var uPred = g.predecessors(u).length > 0 ? g.predecessors(u)[0] : null;
           // Note: In the case of self loops and sideways edges it is possible
           // for a dummy not to have a predecessor.
           if (uPred != null && g.node(uPred).containsKey('dummy') && g.node(uPred)['dummy'])
@@ -185,8 +192,8 @@ class Position {
     return conflicts;
   }
 
-  Map verticalAlignment(g, layering, Map conflicts, relationship) {
-    var pos = {},   // Position for a node in its layer
+  Map verticalAlignment(Digraph g, List layering, Map conflicts, String relationship) {
+    Map pos = {},   // Position for a node in its layer
         root = {},  // Root of the block that the node participates in
         align = {}; // Points to the next node in the block or, if the last
                     // element in the block, points to the first block"s root
@@ -202,7 +209,7 @@ class Position {
     });
 
     layering.forEach((layer) {
-      var prevIdx = -1;
+      int prevIdx = -1;
       layer.forEach((v) {
         var related,// = g[relationship](v), // Adjacent nodes from the previous layer
             mid;                          // The mid point in the related array
@@ -232,7 +239,7 @@ class Position {
   // it takes into account the size of the nodes. Second it includes a fix to
   // the original algorithm that is described in Carstens, "Node and Label
   // Placement in a Layered Layout Algorithm".
-  horizontalCompaction(g, layering, pos, root, align) {
+  horizontalCompaction(BaseGraph g, List layering, pos, root, align) {
     var sink = {},       // Mapping of node id -> sink node id for class
         maybeShift = {}, // Mapping of sink node id -> { class node id, min shift }
         shift = {},      // Mapping of sink node id -> shift
@@ -317,21 +324,21 @@ class Position {
     return xs;
   }
 
-  findMinCoord(g, layering, xs) {
+  findMinCoord(BaseGraph g, List layering, Map xs) {
     return util.min(layering.map((layer) {
       var u = layer[0];
       return xs[u];
     }));
   }
 
-  findMaxCoord(g, layering, xs) {
+  findMaxCoord(BaseGraph g, List layering, xs) {
     return util.max(layering.map((layer) {
       var u = layer[layer.length - 1];
       return xs[u];
     }));
   }
 
-  balance(g, layering, Map xss) {
+  balance(BaseGraph g, List layering, Map xss) {
     var min = {},                            // Min coordinate for the alignment
         max = {},                            // Max coordinate for the alginment
         smallestAlignment,
@@ -339,12 +346,18 @@ class Position {
         alignment;
 
     updateAlignment(v, _) {
+//      print(xss[alignment][v]);
+//      if (xss[alignment][v] == null) {
+//        print(xss);
+//        print(alignment);
+//        print(v);
+//      }
       xss[alignment][v] += shift[alignment];
     }
 
     var smallest = double.INFINITY;
     for (alignment in xss.keys) {
-      var xs = xss[alignment];
+      Map xs = xss[alignment];
       min[alignment] = findMinCoord(g, layering, xs);
       max[alignment] = findMaxCoord(g, layering, xs);
       var w = max[alignment] - min[alignment];
@@ -378,24 +391,30 @@ class Position {
 
   reverseInnerOrder(layering) {
     layering.forEach((List layer) {
-      layer.setAll(0, layer.reversed);
+      layer.setAll(0, layer.reversed.toList());
     });
   }
 
   width(BaseGraph g, u) {
+    num r;
     switch (g.graph()['rankDir']) {
-      case "LR": return g.node(u)['height'];
-      case "RL": return g.node(u)['height'];
-      default:   return g.node(u)['width'];
+      case "LR": r = g.node(u)['height']; break;
+      case "RL": r = g.node(u)['height']; break;
+      default:   r = g.node(u)['width'];
     }
+    if (r == null) r = double.NAN;
+    return r;
   }
 
   height(BaseGraph g, u) {
+    num r;
     switch(g.graph()['rankDir']) {
-      case "LR": return g.node(u)['width'];
-      case "RL": return g.node(u)['width'];
-      default:   return g.node(u)['height'];
+      case "LR": r = g.node(u)['width']; break;
+      case "RL": r = g.node(u)['width']; break;
+      default:   r = g.node(u)['height'];
     }
+    if (r == null) r = double.NAN;
+    return r;
   }
 
   sep(BaseGraph g, u) {

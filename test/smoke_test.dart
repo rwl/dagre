@@ -20,13 +20,13 @@ smokeTest() {
       fileNames = smokeDir.listSync(followLinks: false)
                         .where((x) { return FileSystemEntity.isFileSync(x.path); })
                         .map((x) { return x.path; })
-                        .where((x) { return x.slice(-4) == ".dot"; })
-                        .map((x) { return path.join(smokeDir.path, x); });
+                        .where((String x) { return path.extension(x) == ".dot"; })
+                        .map((x) { return path.join(smokeDir.path, x); }).toList();
     }
 
     fileNames.forEach((fileName) {
       final file = new File(fileName);
-      Digraph g;
+      BaseGraph g;
       try {
         final contents = file.readAsStringSync();
         g = dot.parse(contents);
@@ -43,18 +43,18 @@ smokeTest() {
         if (a['height'] == null) a['height'] = 50;
       });
 
-      group("layout for " + fileName, () {
+      group("layout for " + path.basename(fileName), () {
         test("only includes nodes in the input graph", () {
           var nodes = g.nodes();
-          expect(new Layout().run(g).nodes(), same(nodes));
+          expect(new Layout().run(g).nodes(), unorderedEquals(nodes));
         });
 
         test("only includes edges in the input graph", () {
           var edges = g.edges();
-          expect(new Layout().run(g).edges(), same(edges));
+          expect(new Layout().run(g).edges(), unorderedEquals(edges));
         });
 
-        test("has the same incident nodes for each edge", () {
+        test("has the unorderedEquals incident nodes for each edge", () {
           incidentNodes(g) {
             var edges = {};
             g.edges().forEach((e) {
@@ -68,9 +68,9 @@ smokeTest() {
         });
 
         test("has valid control points for each edge", () {
-          new Layout().run(g).eachEdge((e, u, v, value) {
-            expect(value, "points");
-            value.points.forEach((p) {
+          new Layout().run(g).eachEdge((e, u, v, Map value) {
+            expect(value, contains("points"));
+            value['points'].forEach((p) {
               expect(p, contains("x"));
               expect(p, contains("y"));
               expect(p['x'].isNaN, isFalse);
@@ -88,13 +88,13 @@ smokeTest() {
           var out = (new Layout()..rankSep = sep).run(g);
 
           getY(u) {
-            return (g.graph().rankDir == "LR" || g.graph().rankDir == "RL"
-                      ? out.node(u).x
-                      : out.node(u).y);
+            return (g.graph()['rankDir'] == "LR" || g.graph()['rankDir'] == "RL"
+                      ? out.node(u)['x']
+                      : out.node(u)['y']);
           }
 
           getHeight(u) {
-            return (g.graph().rankDir == "LR" || g.graph().rankDir == "RL"
+            return (g.graph()['rankDir'] == "LR" || g.graph()['rankDir'] == "RL"
                               ? out.node(u)['width']
                               : out.node(u)['height']).toDouble();
           }
@@ -117,22 +117,22 @@ smokeTest() {
           final nodes = out.nodes().where(util.filterNonSubgraphs(out));
 
           final xs = nodes.map((u) {
-            var value = out.node(u);
-            return value.x - value.width / 2;
-          });
+            Map value = out.node(u);
+            return value['x'] - value['width'] / 2;
+          }).toList();
           out.eachEdge((e, u, v, Map value) {
-            xs.addAll(value['points'].map((p) {
-              return p.x - value['width'] / 2;
+            xs.addAll(value['points'].map((Map p) {
+              return p['x'] - value['width'] / 2;
             }));
           });
 
           final ys = nodes.map((u) {
-            var value = out.node(u);
-            return value.y - value.height / 2;
-          });
-          out.eachEdge((e, u, v, value) {
-            ys.addAll(value.points.map((p) {
-              return p.y - value.height / 2;
+            Map value = out.node(u);
+            return value['y'] - value['height'] / 2;
+          }).toList();
+          out.eachEdge((e, u, v, Map value) {
+            ys.addAll(value['points'].map((Map p) {
+              return p['y'] - value['height'] / 2;
             }));
           });
 
@@ -160,9 +160,9 @@ smokeTest() {
           var layoutGraph = new Layout().run(g);
           components(layoutGraph).forEach((cmpt) {
             var subgraph = layoutGraph.filterNodes(nodesFromList(cmpt));
-            subgraph.eachEdge((e, u, v, value) {
-              if (value.minLen != (layoutGraph.node(u).rank - layoutGraph.node(v).rank).abs() &&
-                  layoutGraph.node(u).prefRank != layoutGraph.node(v).prefRank) {
+            subgraph.eachEdge((e, u, v, Map value) {
+              if (value['minLen'] != (layoutGraph.node(u)['rank'] - layoutGraph.node(v)['rank']).abs() &&
+                  layoutGraph.node(u)['prefRank'] != layoutGraph.node(v)['prefRank']) {
                 subgraph.delEdge(e);
               }
             });

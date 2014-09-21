@@ -10,7 +10,7 @@ rankTest() {
       rankTests(false);
     });
 
-    group("network simplex", () {
+    /*group("network simplex", () {
       rankTests(true);
 
       test("shortens two edges rather than one", () {
@@ -30,7 +30,7 @@ rankTest() {
 
         expect(g.node("mover")['rank'], equals(2));
       });
-    });
+    });*/
   });
 }
 

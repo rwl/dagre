@@ -66,11 +66,14 @@ Map mergeNodeData(BaseGraph g, Map lhs, Map rhs) {
     cg.addEdge(null, lhs['lastSG'], rhs['firstSG']);
   }
 
+  final rhsOrder = rhs['order'] != null ? rhs['order'] : double.NAN;
+  final lhsOrder = lhs['order'] != null ? lhs['order'] : double.NAN;
+
   return {
     'degree': lhs['degree'] + rhs['degree'],
     'barycenter': (lhs['barycenter'] * lhs['degree'] + rhs['barycenter'] * rhs['degree']) /
                 (lhs['degree'] + rhs['degree']),
-    'order': (lhs['order'] * lhs['orderCount'] + rhs['order'] * rhs['orderCount']) /
+    'order': (lhsOrder * lhs['orderCount'] + rhsOrder * rhs['orderCount']) /
            (lhs['orderCount'] + rhs['orderCount']),
     'orderCount': lhs['orderCount'] + rhs['orderCount'],
     'list': concat([lhs['list'], (rhs['list'])]).toList(),

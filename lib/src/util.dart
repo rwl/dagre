@@ -77,6 +77,7 @@ List<List> ordering(BaseGraph g) {
   final ordering = new SplayTreeMap<int, SplayTreeMap>();
   g.eachNode((u, Map value) {
     final r = value['rank'];
+    if (r == null) return; // TODO: undefined ordering
     if (!ordering.containsKey(r)) {
       ordering[r] = new SplayTreeMap();
     }

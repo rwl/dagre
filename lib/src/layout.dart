@@ -179,7 +179,7 @@ class Layout {
     }
   }
 
-  /*
+  /**
    * This function is responsible for "normalizing" the graph. The process of
    * normalization ensures that no edge in the graph has spans more than one
    * rank. To do this it inserts dummy nodes as needed and links them by adding
@@ -222,33 +222,45 @@ class Layout {
     });
   }
 
-  /*
+  /**
    * Reconstructs the graph as it was before normalization. The positions of
    * dummy nodes are used to build an array of points for the original "long"
    * edge. Dummy nodes and edges are removed.
    */
   undoNormalize(g) {
     g.eachNode((u, a) {
-      if (a['dummy']) {
+      if (a.containsKey('dummy') && a['dummy']) {
         if (a.containsKey("index")) {
           Map edge = a['edge'];
           if (!g.hasEdge(edge['id'])) {
             g.addEdge(edge['id'], edge['source'], edge['target'], edge['attrs']);
           }
-          var points = g.edge(edge['id']).points;
-          points[a['index']] = { 'x': a['x'], 'y': a['y'], 'ul': a['ul'], 'ur': a['ur'], 'dl': a['dl'], 'dr': a['dr'] };
+          List points = g.edge(edge['id'])['points'];
+          int i = a['index'];
+          if (i >= points.length) {
+            points = new List(i + 1)..setAll(0, points.toList());
+            g.edge(edge['id'])['points'] = points;
+          }
+          points[a['index']] = { 'x': a['x'], 'y': a['y'],
+                                 'ul': a['ul'], 'ur': a['ur'],
+                                 'dl': a['dl'], 'dr': a['dr'] };
         }
         g.delNode(u);
       }
     });
   }
 
-  /*
+  /**
    * For each edge that was reversed during the `acyclic` step, reverse its
    * array of points.
    */
   fixupEdgePoints(BaseGraph g) {
-    g.eachEdge((e, s, t, a) { if (a.reversed) a.points.reverse(); });
+    g.eachEdge((e, s, t, Map a) {
+      if (a['reversed'] != null && a['reversed']) {
+//        a['points'].reverse();
+        a['points'].setAll(0, a['points'].reversed.toList());
+      }
+    });
   }
 
   BaseGraph createFinalGraph(BaseGraph g, isDirected) {
@@ -256,21 +268,23 @@ class Layout {
     out.graph(g.graph());
     g.eachNode((u, value) { out.addNode(u, value); });
     g.eachNode((u, _) { out.parent(u, g.parent(u)); });
-    g.eachEdge((e, u, v, value) {
-      out.addEdge(value.e, u, v, value);
+    g.eachEdge((e, u, v, Map value) {
+      out.addEdge(value['e'], u, v, value);
     });
 
     // Attach bounding box information
     var maxX = 0, maxY = 0;
-    g.eachNode((u, value) {
+    g.eachNode((u, Map value) {
       if (g.children(u).length == 0) {
-        maxX = Math.max(maxX, value.x + value['width'] / 2);
-        maxY = Math.max(maxY, value.y + value['height'] / 2);
+        final w = value['width'] != null ? value['width'] : double.NAN;
+        final h = value['height'] != null ? value['height'] : double.NAN;
+        maxX = Math.max(maxX, value['x'] + w / 2);
+        maxY = Math.max(maxY, value['y'] + h / 2);
       }
     });
-    g.eachEdge((e, u, v, value) {
-      var maxXPoints = value.points.map((p) { return p.x; }).reduce(Math.max);
-      var maxYPoints = value.points.map((p) { return p.y; }).reduce(Math.max);
+    g.eachEdge((e, u, v, Map value) {
+      var maxXPoints = value['points'].map((p) { return p['x']; }).reduce(Math.max);
+      var maxYPoints = value['points'].map((p) { return p['y']; }).reduce(Math.max);
       maxX = Math.max(maxX, maxXPoints + value['width'] / 2);
       maxY = Math.max(maxY, maxYPoints + value['height'] / 2);
     });

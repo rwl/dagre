@@ -27,8 +27,8 @@ layoutTest() {
 
       var outputGraph = new Layout().run(inputGraph);
 
-      expect(outputGraph.graph().width, equals(100));
-      expect(outputGraph.graph().height, equals(20 + 30 + new Layout().rankSep));
+      expect(outputGraph.graph()['width'], equals(100));
+      expect(outputGraph.graph()['height'], equals(20 + 30 + new Layout().rankSep));
     });
 
     test("ranks nodes left-to-right with rankDir=LR", () {
@@ -43,7 +43,7 @@ layoutTest() {
       var n1X = outputGraph.node(1)['x'];
       var n2X = outputGraph.node(2)['x'];
       expect(n1X < n2X, isTrue,
-                    reason: "Expected node 1 (" + n1X + ") to come before node 2 (" + n2X + ")");
+                    reason: "Expected node 1 ($n1X) to come before node 2 ($n2X)");
       expect(outputGraph.node(1)['y'], equals(outputGraph.node(2)['y']));
     });
 
@@ -59,7 +59,7 @@ layoutTest() {
       var n1X = outputGraph.node(1)['x'];
       var n2X = outputGraph.node(2)['x'];
       expect(n1X > n2X, isTrue,
-                    reason: "Expected node 1 (" + n1X + ") to come after node 2 (" + n2X + ")");
+                    reason: "Expected node 1 ($n1X) to come after node 2 ($n2X)");
       expect(outputGraph.node(1)['y'], equals(outputGraph.node(2)['y']));
     });
 
