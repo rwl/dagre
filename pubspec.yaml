@@ -1,4 +1,6 @@
 name: dagre
+version: 0.0.1
+author: Richard Lincoln <r.w.lincoln@gmail.com>
 description: Graph layout for Dart
 dependencies:
   graphlib:
