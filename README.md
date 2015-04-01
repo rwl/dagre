@@ -1,5 +1,7 @@
 # dagre - Graph layout for Dart
 
+## DEPRECATED (See [graphlib](https://pub.dartlang.org/packages/graphlib))
+
 Dagre is a Dart library that makes it easy to lay out directed graphs on
 the client-side.
 

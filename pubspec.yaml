@@ -1,11 +1,11 @@
 name: dagre
-version: 0.0.1
+version: 0.0.2
 author: Richard Lincoln <r.w.lincoln@gmail.com>
 description: Graph layout for Dart
+homepage: https://github.com/rwl/dagre
 dependencies:
-  graphlib:
-    path: ../graphlib
-  quiver: any
+  graphlib: '>=0.0.1 <0.1.0'
+  quiver: '>=0.21.3 <0.22.0'
 dev_dependencies:
-  graphlib_dot:
-    path: ../graphlib_dot
+  graphlib_dot: '>=0.0.1 <0.1.0'
+  unittest: any
